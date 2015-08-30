@@ -301,6 +301,25 @@ install_node_pkgs () {
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump /usr/local/bin/npm install
+
+			wfile="/lib/systemd/system/orov-cockpit.socket"
+			echo "[Socket]" > ${wfile}
+			echo "ListenStream=8080" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=sockets.target" >> ${wfile}
+
+			wfile="/lib/systemd/system/orov-cockpit.service"
+			echo "[Unit]" > ${wfile}
+			echo "Description=Cockpit server" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Service]" >> ${wfile}
+			echo "WorkingDirectory=/opt/openrov/cockpit/src" >> ${wfile}
+			echo "ExecStart=/usr/bin/node app.js" >> ${wfile}
+			echo "SyslogIdentifier=orov-cockpit" >> ${wfile}
+
+			systemctl enable orov-cockpit.socket || true
+
 		fi
 
 		git_repo="https://github.com/openrov/openrov-dashboard"
@@ -309,6 +328,25 @@ install_node_pkgs () {
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump /usr/local/bin/npm install
+
+			wfile="/lib/systemd/system/orov-dashboard.socket"
+			echo "[Socket]" > ${wfile}
+			echo "ListenStream=3080" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=sockets.target" >> ${wfile}
+
+			wfile="/lib/systemd/system/orov-dashboard.service"
+			echo "[Unit]" > ${wfile}
+			echo "Description=Cockpit server" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Service]" >> ${wfile}
+			echo "WorkingDirectory=/opt/openrov/dashboard/src" >> ${wfile}
+			echo "ExecStart=/usr/bin/node app.js" >> ${wfile}
+			echo "SyslogIdentifier=orov-dashboard" >> ${wfile}
+
+			systemctl enable orov-dashboard.socket || true
+
 		fi
 
 		git_repo="https://github.com/openrov/openrov-proxy"
@@ -317,6 +355,25 @@ install_node_pkgs () {
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump /usr/local/bin/npm install
+
+			wfile="/lib/systemd/system/orov-proxy.socket"
+			echo "[Socket]" > ${wfile}
+			echo "ListenStream=3000" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=sockets.target" >> ${wfile}
+
+			wfile="/lib/systemd/system/orov-proxy.service"
+			echo "[Unit]" > ${wfile}
+			echo "Description=Proxy server" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Service]" >> ${wfile}
+			echo "WorkingDirectory=/opt/openrov/openrov-proxy/proxy-via-browser" >> ${wfile}
+			echo "ExecStart=/usr/bin/node app.js" >> ${wfile}
+			echo "SyslogIdentifier=orov-proxy" >> ${wfile}
+
+			systemctl enable orov-proxy.socket || true
+
 		fi
 
 
