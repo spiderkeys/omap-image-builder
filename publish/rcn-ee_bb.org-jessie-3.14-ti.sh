@@ -1,8 +1,10 @@
 #!/bin/bash -e
 
 time=$(date +%Y-%m-%d)
-mirror_dir="/var/www/html/rcn-ee.net/rootfs/"
+mirror_dir="/var/www/html/rcn-ee.net/rootfs/bb.org/testing"
 DIR="$PWD"
+
+git pull --no-edit https://github.com/beagleboard/image-builder master
 
 export apt_proxy=apt-proxy:3142/
 
@@ -10,15 +12,32 @@ if [ -d ./deploy ] ; then
 	sudo rm -rf ./deploy || true
 fi
 
-./RootStock-NG.sh -c rcn-ee_console_debian_jessie_armhf
-./RootStock-NG.sh -c rcn-ee_console_debian_stretch_armhf
-./RootStock-NG.sh -c rcn-ee_console_ubuntu_trusty_armhf
+./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-4gb-v3.14
+./RootStock-NG.sh -c bb.org-debian-jessie-console
 
-debian_stable="debian-8.1-console-armhf-${time}"
-debian_testing="debian-stretch-console-armhf-${time}"
-ubuntu_stable="ubuntu-14.04.3-console-armhf-${time}"
+debian_jessie_lxqt_4gb="debian-8.1-lxqt-4gb-armhf-${time}"
+debian_jessie_console="debian-8.1-console-armhf-${time}"
 
 archive="xz -z -8 -v"
+
+beaglebone="--dtb beaglebone --beagleboard.org-production --boot_label BEAGLEBONE \
+--rootfs_label rootfs --bbb-old-bootloader-in-emmc --hostname beaglebone"
+
+bb_blank_flasher="--dtb bbb-blank-eeprom --boot_label BEAGLEBONE \
+--rootfs_label rootfs --bbb-old-bootloader-in-emmc --hostname beaglebone"
+
+beaglebone_console="--dtb beaglebone --boot_label BEAGLEBONE \
+--bbb-old-bootloader-in-emmc --hostname beaglebone"
+
+bb_blank_flasher_console="--dtb bbb-blank-eeprom --boot_label BEAGLEBONE \
+--bbb-old-bootloader-in-emmc --hostname beaglebone"
+
+arduino_tre="--dtb am335x-arduino-tre --beagleboard.org-production --boot_label ARDUINO-TRE \
+--rootfs_label rootfs --hostname arduino-tre"
+
+omap3_beagle_xm="--dtb omap3-beagle-xm --hostname BeagleBoard"
+omap5_uevm="--dtb omap5-uevm --hostname omap5-uevm"
+am57xx_beagle_x15="--dtb am57xx-beagle-x15 --hostname BeagleBoard-X15"
 
 cat > ${DIR}/deploy/gift_wrap_final_images.sh <<-__EOF__
 #!/bin/bash
@@ -96,48 +115,27 @@ generate_img () {
         cd ..
 }
 
-#Debian Stable
-base_rootfs="${debian_stable}" ; blend="elinux" ; extract_base_rootfs
+###lxqt-4gb image
+base_rootfs="${debian_jessie_lxqt_4gb}" ; blend="lxqt-4gb" ; extract_base_rootfs
 
-options="--img BBB-eMMC-flasher-${debian_stable} --dtb beaglebone --bbb-flasher --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bone-${debian_stable} --dtb beaglebone --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bb-${debian_stable} --dtb omap3-beagle" ; generate_img
-options="--img bbxm-${debian_stable} --dtb omap3-beagle-xm" ; generate_img
-options="--img omap5-uevm-${debian_stable} --dtb omap5-uevm" ; generate_img
-options="--img bbx15-${debian_stable} --dtb am57xx-beagle-x15" ; generate_img
+options="--img-4gb bone-\${base_rootfs} ${beaglebone}" ; generate_img
 
-#Ubuntu Stable
-base_rootfs="${ubuntu_stable}" ; blend="elinux" ; extract_base_rootfs
+###console images: (also single partition)
+base_rootfs="${debian_jessie_console}" ; blend="console" ; extract_base_rootfs
 
-options="--img BBB-eMMC-flasher-${ubuntu_stable} --dtb beaglebone --bbb-flasher  --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bone-${ubuntu_stable} --dtb beaglebone --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bb-${ubuntu_stable} --dtb omap3-beagle" ; generate_img
-options="--img bbxm-${ubuntu_stable} --dtb omap3-beagle-xm" ; generate_img
-options="--img omap5-uevm-${ubuntu_stable} --dtb omap5-uevm" ; generate_img
-options="--img bbx15-${ubuntu_stable} --dtb am57xx-beagle-x15" ; generate_img
+options="--img-2gb bone-\${base_rootfs} ${beaglebone_console}" ; generate_img
 
-#Archive tar:
-base_rootfs="${debian_stable}" ; blend="elinux" ; archive_base_rootfs
-base_rootfs="${ubuntu_stable}" ; blend="elinux" ; archive_base_rootfs
-base_rootfs="${debian_testing}" ; blend="elinux" ; archive_base_rootfs
+###archive *.tar
+base_rootfs="${debian_jessie_lxqt_4gb}" ; blend="lxqt-4gb" ; archive_base_rootfs
+base_rootfs="${debian_jessie_console}" ; blend="console" ; archive_base_rootfs
 
-#Archive img:
-blend="microsd"
-wfile="bone-${debian_stable}-2gb" ; archive_img
-wfile="bb-${debian_stable}-2gb" ; archive_img
-wfile="bbxm-${debian_stable}-2gb" ; archive_img
-wfile="omap5-uevm-${debian_stable}-2gb" ; archive_img
-wfile="bbx15-${debian_stable}-2gb" ; archive_img
+###archive *.img
+blend="lxqt-4gb"
+wfile="bone-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
 
-wfile="bone-${ubuntu_stable}-2gb" ; archive_img
-wfile="bb-${ubuntu_stable}-2gb" ; archive_img
-wfile="bbxm-${ubuntu_stable}-2gb" ; archive_img
-wfile="omap5-uevm-${ubuntu_stable}-2gb" ; archive_img
-wfile="bbx15-${ubuntu_stable}-2gb" ; archive_img
+blend="console"
+wfile="bone-${debian_jessie_console}-2gb" ; archive_img
 
-blend="flasher"
-wfile="BBB-eMMC-flasher-${debian_stable}-2gb" ; archive_img
-wfile="BBB-eMMC-flasher-${ubuntu_stable}-2gb" ; archive_img
 
 __EOF__
 

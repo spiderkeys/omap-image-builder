@@ -201,7 +201,7 @@ trap chroot_umount EXIT
 
 check_defines
 
-if [ "x${host_arch}" != "xarmv7l" ] ; then
+if [ "x${host_arch}" != "xarmv7l" ] && [ "x${host_arch}" != "xaarch64" ] ; then
 	sudo cp $(which qemu-arm-static) ${tempdir}/usr/bin/
 fi
 
@@ -342,14 +342,14 @@ fi
 if [ "x${repo_rcnee}" = "xenable" ] ; then
 	#no: precise
 	echo "" >> ${wfile}
-	echo "#Kernel source (repos.rcn-ee.net) : https://github.com/RobertCNelson/linux-stable-rcn-ee" >> ${wfile}
+	echo "#Kernel source (repos.rcn-ee.com) : https://github.com/RobertCNelson/linux-stable-rcn-ee" >> ${wfile}
 	echo "#" >> ${wfile}
 	echo "#git clone https://github.com/RobertCNelson/linux-stable-rcn-ee" >> ${wfile}
 	echo "#cd ./linux-stable-rcn-ee" >> ${wfile}
 	echo "#git checkout \`uname -r\` -b tmp" >> ${wfile}
 	echo "#" >> ${wfile}
-	echo "deb [arch=armhf] http://repos.rcn-ee.net/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
-	echo "#deb-src [arch=armhf] http://repos.rcn-ee.net/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
+	echo "deb [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
+	echo "#deb-src [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
 
 	sudo cp -v ${OIB_DIR}/target/keyring/repos.rcn-ee.net-archive-keyring.asc ${tempdir}/tmp/repos.rcn-ee.net-archive-keyring.asc
 fi
@@ -392,6 +392,8 @@ if [ "x${deb_arch}" = "xarmhf" ] ; then
 			distro="Debian"
 			;;
 		jessie|stretch)
+			#while bb-customizations installes "generic-board-startup.service" other boards/configs could use this default.
+			sudo cp ${OIB_DIR}/target/init_scripts/systemd-generic-board-startup.service ${tempdir}/lib/systemd/system/generic-board-startup.service
 			sudo cp ${OIB_DIR}/target/init_scripts/systemd-capemgr.service ${tempdir}/lib/systemd/system/capemgr.service
 			sudo cp ${OIB_DIR}/target/init_scripts/capemgr ${tempdir}/etc/default/
 			distro="Debian"
@@ -847,7 +849,9 @@ cat > ${DIR}/chroot_script.sh <<-__EOF__
 		if [ -d /var/cache/ti-pru-cgt-installer/ ] ; then
 			rm -rf /var/cache/ti-pru-cgt-installer/ || true
 		fi
-
+		if [ -d /var/cache/vpdma-dra7xx-installer/ ] ; then
+			rm -rf /var/cache/vpdma-dra7xx-installer/ || true
+		fi
 		rm -f /usr/sbin/policy-rc.d
 
 		if [ "x\${distro}" = "xUbuntu" ] ; then
@@ -931,6 +935,10 @@ if [ "x${include_firmware}" = "xenable" ] ; then
 		sudo mkdir -p ${tempdir}/lib/firmware/ti-connectivity
 		sudo cp -v ${DIR}/git/linux-firmware/LICENCE.ti-connectivity ${tempdir}/lib/firmware/
 		sudo cp -v ${DIR}/git/linux-firmware/ti-connectivity/* ${tempdir}/lib/firmware/ti-connectivity
+	fi
+
+	if [ -f ${DIR}/git/mt7601u/src/mcu/bin/MT7601.bin ] ; then
+		sudo cp -v ${DIR}/git/mt7601u/src/mcu/bin/MT7601.bin ${tempdir}/lib/firmware/mt7601u.bin
 	fi
 fi
 
@@ -1124,10 +1132,25 @@ fi
 
 sudo chown -R ${USER}:${USER} ${DIR}/deploy/${export_filename}/
 
+keep_alive () {
+	while : ; do
+		sleep 15
+		echo "Log: [x---]: Creating: ${export_filename}.tar"
+		sleep 15
+		echo "Log: [-x--]: Creating: ${export_filename}.tar"
+		sleep 15
+		echo "Log: [--x-]: Creating: ${export_filename}.tar"
+		sleep 15
+		echo "Log: [---x]: Creating: ${export_filename}.tar"
+	done
+}
+
 if [ "x${chroot_tarball}" = "xenable" ] ; then
-	echo "Compressing ${export_filename}"
+	echo "Creating: ${export_filename}.tar"
 	cd ${DIR}/deploy/
+	keep_alive & KEEP_ALIVE_PID=$!
 	tar cvf ${export_filename}.tar ./${export_filename}
+	[ -e /proc/$KEEP_ALIVE_PID ] && sudo kill $KEEP_ALIVE_PID
 	cd ${DIR}/
 fi
 #
