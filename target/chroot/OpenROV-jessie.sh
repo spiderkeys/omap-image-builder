@@ -484,12 +484,8 @@ install_git_repos () {
 
 	git_repo="https://github.com/openrov/openrov-image-customization"
 	git_target_dir="/opt/openrov/openrov-image-customization"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		git checkout jessie
-	fi
-
+	get_branch="jessie"
+	git_clone_branch
 
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
 	git_branch="4.1-ti"
