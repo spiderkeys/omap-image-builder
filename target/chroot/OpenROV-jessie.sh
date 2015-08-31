@@ -428,7 +428,7 @@ install_node_pkgs () {
 
 			wfile="/lib/systemd/system/bonescript.socket"
 			echo "[Socket]" > ${wfile}
-			echo "ListenStream=80" >> ${wfile}
+			echo "ListenStream=10080" >> ${wfile}
 			echo "" >> ${wfile}
 			echo "[Install]" >> ${wfile}
 			echo "WantedBy=sockets.target" >> ${wfile}
@@ -483,7 +483,7 @@ install_git_repos () {
 	git_clone
 
 	git_repo="https://github.com/openrov/openrov-image-customization"
-	git_target_dir="/opt/openrov/openrov-image-customization"
+	git_target_dir="/opt/openrov/image-customization"
 	get_branch="jessie"
 	git_clone_branch
 
