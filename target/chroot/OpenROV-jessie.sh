@@ -376,6 +376,11 @@ install_node_pkgs () {
 
 		fi
 
+		echo "Installing wetty"
+		TERM=dumb npm install -g wetty
+
+		echo "Installing ungit"
+		TERM=dumb npm install -g ungit
 
 		cd /opt
 
@@ -484,6 +489,14 @@ install_git_repos () {
 	git_repo="https://github.com/openrov/openrov-software-arduino"
 	git_target_dir="/opt/openrov/arduino"
 	git_clone
+
+	git_repo="https://github.com/openrov/openrov-image-customization"
+	git_target_dir="/opt/openrov/openrov-image-customization"
+	git_clone
+	if [ -f ${git_target_dir}/.git/config ] ; then
+		cd ${git_target_dir}/
+		git checkout jessie
+	fi
 
 	git_repo="https://github.com/prpplague/Userspace-Arduino"
 	git_target_dir="/opt/source/Userspace-Arduino"
@@ -625,6 +638,10 @@ todo () {
 		if [ ! -f /etc/modules-load.d/mt7601.conf ] ; then
 			echo "mt7601Usta" > /etc/modules-load.d/mt7601.conf
 		fi
+	fi
+
+	if [ -f /opt/openrov/openrov-image-customization/.git/config ] ; then
+		 /opt/openrov/openrov-image-customization/afterinstall.sh
 	fi
 }
 
