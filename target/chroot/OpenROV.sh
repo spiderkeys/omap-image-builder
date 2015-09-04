@@ -405,9 +405,6 @@ install_gem_pkgs () {
 }
 
 install_git_repos () {
-	git_repo="https://github.com/prpplague/Userspace-Arduino"
-	git_target_dir="/opt/source/Userspace-Arduino"
-	git_clone
 
 	git_repo="https://github.com/cdsteinkuehler/beaglebone-universal-io.git"
 	git_target_dir="/opt/source/beaglebone-universal-io"
@@ -415,41 +412,6 @@ install_git_repos () {
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		if [ -f ${git_target_dir}/config-pin ] ; then
 			ln -s ${git_target_dir}/config-pin /usr/local/bin/
-		fi
-	fi
-
-	git_repo="https://github.com/strahlex/BBIOConfig.git"
-	git_target_dir="/opt/source/BBIOConfig"
-	git_clone
-
-	git_repo="https://github.com/prpplague/fb-test-app.git"
-	git_target_dir="/opt/source/fb-test-app"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		if [ -f /usr/bin/make ] ; then
-			make
-		fi
-	fi
-
-	git_repo="https://github.com/biocode3D/prufh.git"
-	git_target_dir="/opt/source/prufh"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		if [ -f /usr/bin/make ] ; then
-			make LIBDIR_APP_LOADER=/usr/lib/ INCDIR_APP_LOADER=/usr/include
-		fi
-	fi
-
-	git_repo="https://github.com/alexanderhiam/PyBBIO.git"
-	git_target_dir="/opt/source/PyBBIO"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		if [ -f /usr/bin/dtc ] ; then
-			sed -i "s/PLATFORM = ''/PLATFORM = 'BeagleBone >=3.8'/g" setup.py
-			python setup.py install
 		fi
 	fi
 
