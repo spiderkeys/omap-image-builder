@@ -3,10 +3,16 @@
 time=$(date +%Y-%m-%d)
 mirror_dir="/var/www/html/rcn-ee.net/rootfs/bb.org/testing"
 DIR="$PWD"
+host=$(uname -n)
 
 git pull --no-edit https://github.com/beagleboard/image-builder master
 
-export apt_proxy=apt-proxy:3142/
+if [ "x${host}" = "xscw-69d6d5" ] ; then
+	hostip=$(sudo ip addr list eth0 |grep "inet " |cut -d' ' -f6|cut -d/ -f1 2>/dev/null || true)
+	export apt_proxy=${hostip}:3142/
+else
+	export apt_proxy=apt-proxy:3142/
+fi
 
 if [ -d ./deploy ] ; then
 	sudo rm -rf ./deploy || true
@@ -200,15 +206,15 @@ __EOF__
 
 chmod +x ${DIR}/deploy/gift_wrap_final_images.sh
 
-if [ ! -d /mnt/farm/images/ ] ; then
+#if [ ! -d /mnt/farm/images/ ] ; then
 	#nfs mount...
-	sudo mount -a
-fi
+#	sudo mount -a
+#fi
 
-if [ -d /mnt/farm/images/ ] ; then
-	mkdir /mnt/farm/images/${time}/
-	cp -v ${DIR}/deploy/*.tar /mnt/farm/images/${time}/
-	cp -v ${DIR}/deploy/gift_wrap_final_images.sh /mnt/farm/images/${time}/gift_wrap_final_images.sh
-	chmod +x /mnt/farm/images/${time}/gift_wrap_final_images.sh
-fi
+#if [ -d /mnt/farm/images/ ] ; then
+#	mkdir /mnt/farm/images/${time}/
+#	cp -v ${DIR}/deploy/*.tar /mnt/farm/images/${time}/
+#	cp -v ${DIR}/deploy/gift_wrap_final_images.sh /mnt/farm/images/${time}/gift_wrap_final_images.sh
+#	chmod +x /mnt/farm/images/${time}/gift_wrap_final_images.sh
+#fi
 

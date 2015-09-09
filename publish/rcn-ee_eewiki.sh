@@ -1,9 +1,16 @@
 #!/bin/bash -e
 
 time=$(date +%Y-%m-%d)
+mirror_dir="/var/www/html/rcn-ee.net/rootfs/eewiki"
 DIR="$PWD"
+host=$(uname -n)
 
-export apt_proxy=apt-proxy:3142/
+if [ "x${host}" = "xscw-69d6d5" ] ; then
+	hostip=$(sudo ip addr list eth0 |grep "inet " |cut -d' ' -f6|cut -d/ -f1 2>/dev/null || true)
+	export apt_proxy=${hostip}:3142/
+else
+	export apt_proxy=apt-proxy:3142/
+fi
 
 ./RootStock-NG.sh -c eewiki_bare_debian_jessie_armel
 ./RootStock-NG.sh -c eewiki_bare_debian_jessie_armhf
@@ -12,20 +19,38 @@ export apt_proxy=apt-proxy:3142/
 ./RootStock-NG.sh -c eewiki_minfs_debian_jessie_armhf
 ./RootStock-NG.sh -c eewiki_minfs_ubuntu_trusty_armhf
 
-debian_jessie="debian-8.1"
+debian_stable="debian-8.2"
 ubuntu_stable="ubuntu-14.04.3"
-archive="xz -z -8 -v"
+archive="xz -z -8"
 
 cat > ${DIR}/deploy/gift_wrap_final_images.sh <<-__EOF__
 #!/bin/bash
 
-${archive} ${debian_jessie}-bare-armel-${time}.tar
-${archive} ${debian_jessie}-bare-armhf-${time}.tar
+copy_base_rootfs_to_mirror () {
+        if [ -d ${mirror_dir}/ ] ; then
+                if [ ! -d ${mirror_dir}/\${blend}/ ] ; then
+                        mkdir -p ${mirror_dir}/\${blend}/ || true
+                fi
+                if [ -d ${mirror_dir}/\${blend}/ ] ; then
+                        if [ ! -f ${mirror_dir}/\${blend}/\${base_rootfs}.tar.xz ] ; then
+                                cp -v \${base_rootfs}.tar ${mirror_dir}/\${blend}/
+                                cd ${mirror_dir}/\${blend}/
+                                ${archive} \${base_rootfs}.tar &
+                                cd -
+                        fi
+                fi
+        fi
+}
 
-${archive} ${debian_jessie}-minimal-armel-${time}.tar
-${archive} ${debian_jessie}-minimal-armhf-${time}.tar
+blend=barefs
+base_rootfs="${debian_stable}-bare-armel-${time}" ; copy_base_rootfs_to_mirror
+base_rootfs="${debian_stable}-bare-armhf-${time}" ; copy_base_rootfs_to_mirror
 
-${archive} ${ubuntu_stable}-minimal-armhf-${time}.tar
+blend=minfs
+base_rootfs="${debian_stable}-minimal-armel-${time}" ; copy_base_rootfs_to_mirror
+base_rootfs="${debian_stable}-minimal-armhf-${time}" ; copy_base_rootfs_to_mirror
+
+base_rootfs="${ubuntu_stable}-minimal-armhf-${time}" ; copy_base_rootfs_to_mirror
 
 __EOF__
 
