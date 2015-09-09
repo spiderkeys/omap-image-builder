@@ -278,13 +278,8 @@ install_node_pkgs () {
 		#echo "--------------------------------"
 
 		if [ -f /usr/bin/make ] ; then
-			echo "Installing: [npm install -g npm]"
-			TERM=dump npm install -g npm
-
-			echo "debug: npm: [`/usr/local/bin/npm --version`]"
-
 			echo "Installing: [npm install -g bonescript@0.2.5]"
-			TERM=dumb /usr/local/bin/npm install -g bonescript@0.2.5
+			TERM=dumb npm install -g bonescript@0.2.5
 		fi
 
 		git_repo="https://github.com/openrov/openrov-cockpit"
@@ -292,7 +287,7 @@ install_node_pkgs () {
 		git_clone
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dump /usr/local/bin/npm install
+			TERM=dump npm install
 
 			wfile="/lib/systemd/system/orov-cockpit.socket"
 			echo "[Socket]" > ${wfile}
@@ -319,7 +314,7 @@ install_node_pkgs () {
 		git_clone
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dump /usr/local/bin/npm install
+			TERM=dump npm install
 
 			wfile="/lib/systemd/system/orov-dashboard.socket"
 			echo "[Socket]" > ${wfile}
@@ -346,7 +341,7 @@ install_node_pkgs () {
 		git_clone
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dump /usr/local/bin/npm install
+			TERM=dump npm install
 
 			wfile="/lib/systemd/system/orov-proxy.socket"
 			echo "[Socket]" > ${wfile}
