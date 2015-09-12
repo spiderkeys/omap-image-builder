@@ -81,6 +81,69 @@ git_clone_full () {
 	echo "${git_target_dir} : ${git_repo}" >> /opt/source/list.txt
 }
 
+install_node_pkgs () {
+	if [ -f /usr/bin/npm ] ; then
+		echo "Installing npm packages"
+		echo "debug: node: [`node --version`]"
+		echo "debug: npm: [`npm --version`]"
+
+		echo "NODE_PATH=/usr/local/lib/node_modules" > /etc/default/node
+		echo "export NODE_PATH=/usr/local/lib/node_modules" > /etc/profile.d/node.sh
+		chmod 755 /etc/profile.d/node.sh
+
+		#debug
+		#echo "debug: npm config ls -l (before)"
+		#echo "--------------------------------"
+		#npm config ls -l
+		#echo "--------------------------------"
+
+		#c9-core-installer...
+		npm config delete cache
+		npm config delete tmp
+		npm config delete python
+
+		#fix npm in chroot.. (did i mention i hate npm...)
+		if [ ! -d /root/.npm ] ; then
+			mkdir -p /root/.npm
+		fi
+		npm config set cache /root/.npm
+		npm config set group 0
+		npm config set init-module /root/.npm-init.js
+
+		if [ ! -d /root/tmp ] ; then
+			mkdir -p /root/tmp
+		fi
+		npm config set tmp /root/tmp
+		npm config set user 0
+		npm config set userconfig /root/.npmrc
+
+		#echo "debug: npm config ls -l (after)"
+		#echo "--------------------------------"
+		#npm config ls -l
+		#echo "--------------------------------"
+
+		cd /opt/
+
+		#cloud9 installed by cloud9-installer
+		if [ -d /opt/cloud9/build/standalonebuild ] ; then
+			if [ -f /usr/bin/make ] ; then
+				echo "Installing winston"
+				TERM=dumb npm install -g winston --arch=armhf
+			fi
+
+			#cloud9 conflicts with the openrov proxy, move cloud 9
+			if [ -f //lib/systemd/system/cloud9.socket ] ; then
+				sed -i -e 's:3000:3131:g' /lib/systemd/system/cloud9.socket
+			fi
+
+			systemctl enable cloud9.socket || true
+		fi
+
+		cleanup_npm_cache
+		sync
+
+	fi
+}
 
 install_git_repos () {
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
@@ -116,7 +179,7 @@ is_this_qemu
 #setup_desktop
 
 #install_gem_pkgs
-#install_node_pkgs
+install_node_pkgs
 #install_pip_pkgs
 if [ -f /usr/bin/git ] ; then
 	git config --global user.email "${rfs_username}@example.com"
