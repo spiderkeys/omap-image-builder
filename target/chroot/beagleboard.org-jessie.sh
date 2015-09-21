@@ -22,7 +22,8 @@
 
 export LC_ALL=C
 
-u_boot_release="v2015.07"
+u_boot_release="v2015.10-rc3"
+u_boot_release_x15="v2015.07"
 #bone101_git_sha="50e01966e438ddc43b9177ad4e119e5274a0130d"
 
 #contains: rfs_username, release_date
@@ -191,6 +192,7 @@ setup_desktop () {
 		echo "    <jabberid>author@example.net</jabberid>" >> ${wfile}
 		echo "    <format>text</format>" >> ${wfile}
 		echo "</pastebinit>" >> ${wfile}
+		chown ${rfs_username}:${rfs_username} ${wfile}
 	fi
 
 	#fix Ping:
@@ -244,6 +246,7 @@ cleanup_npm_cache () {
 
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
+		cd /
 		echo "Installing npm packages"
 		echo "debug: node: [`node --version`]"
 		echo "debug: npm: [`npm --version`]"
@@ -416,6 +419,7 @@ install_git_repos () {
 		if [ -f /usr/bin/make ] ; then
 			make
 		fi
+		cd /
 	fi
 
 	git_repo="https://github.com/biocode3D/prufh.git"
@@ -426,6 +430,7 @@ install_git_repos () {
 		if [ -f /usr/bin/make ] ; then
 			make LIBDIR_APP_LOADER=/usr/lib/ INCDIR_APP_LOADER=/usr/include
 		fi
+		cd /
 	fi
 
 	git_repo="https://github.com/alexanderhiam/PyBBIO.git"
@@ -437,6 +442,7 @@ install_git_repos () {
 			sed -i "s/PLATFORM = ''/PLATFORM = 'BeagleBone >=3.8'/g" setup.py
 			python setup.py install
 		fi
+		cd /
 	fi
 
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
@@ -483,6 +489,7 @@ install_git_repos () {
 
 install_build_pkgs () {
 	cd /opt/
+	cd /
 }
 
 other_source_links () {
@@ -491,9 +498,11 @@ other_source_links () {
 	mkdir -p /opt/source/u-boot_${u_boot_release}/
 	wget --directory-prefix="/opt/source/u-boot_${u_boot_release}/" ${rcn_https}/${u_boot_release}/0001-omap3_beagle-uEnv.txt-bootz-n-fixes.patch
 	wget --directory-prefix="/opt/source/u-boot_${u_boot_release}/" ${rcn_https}/${u_boot_release}/0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
-	wget --directory-prefix="/opt/source/u-boot_${u_boot_release}/" ${rcn_https}/${u_boot_release}/0001-beagle_x15-uEnv.txt-bootz-n-fixes.patch
+	mkdir -p /opt/source/u-boot_${u_boot_release_x15}/
+	wget --directory-prefix="/opt/source/u-boot_${u_boot_release_x15}/" ${rcn_https}/${u_boot_release_x15}/0001-beagle_x15-uEnv.txt-bootz-n-fixes.patch
 
 	echo "u-boot_${u_boot_release} : /opt/source/u-boot_${u_boot_release}" >> /opt/source/list.txt
+	echo "u-boot_${u_boot_release_x15} : /opt/source/u-boot_${u_boot_release_x15}" >> /opt/source/list.txt
 
 	chown -R ${rfs_username}:${rfs_username} /opt/source/
 }

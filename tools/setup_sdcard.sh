@@ -40,6 +40,18 @@ ROOTFS_LABEL=rootfs
 DIR="$PWD"
 TEMPDIR=$(mktemp -d)
 
+keep_net_alive () {
+	while : ; do
+		echo "running: $*"
+		sleep 300
+	done
+}
+keep_net_alive & KEEP_NET_ALIVE_PID=$!
+cleanup_keep_net_alive () {
+	[ -e /proc/$KEEP_NET_ALIVE_PID ] && kill $KEEP_NET_ALIVE_PID
+}
+trap cleanup_keep_net_alive EXIT
+
 is_element_of () {
 	testelt=$1
 	for validelt in $2 ; do
@@ -1105,6 +1117,9 @@ populate_rootfs () {
 	else
 		if [ "x${usb_flasher}" = "xenable" ] ; then
 			echo "cmdline=init=/opt/scripts/tools/eMMC/init-eMMC-flasher-from-usb-media.sh" >> ${wfile}
+		elif [ "x${emmc_flasher}" = "xenable" ] ; then
+			echo "##enable Generic eMMC Flasher:" >> ${wfile}
+			echo "cmdline=init=/opt/scripts/tools/eMMC/init-eMMC-flasher-v3.sh" >> ${wfile}
 		fi
 	fi
 
@@ -1340,8 +1355,33 @@ populate_rootfs () {
 		echo "-----------------------------"
 	fi
 	if [ "x${build_img_file}" = "xenable" ] ; then
-		echo "Image file: ${media}"
+		echo "Image file: ${imagename}"
 		echo "-----------------------------"
+
+		if [ "x${usb_flasher}" = "x" ] && [ "x${emmc_flasher}" = "x" ] ; then
+			wfile="${imagename}.xz.job.txt"
+			echo "abi=aaa" > ${wfile}
+			echo "conf_image=${imagename}.xz" >> ${wfile}
+			bmapimage=$(echo ${imagename} | awk -F ".img" '{print $1}')
+			echo "conf_bmap=${bmapimage}.bmap" >> ${wfile}
+			echo "conf_resize=enable" >> ${wfile}
+			echo "conf_partition1_startmb=${conf_boot_startmb}" >> ${wfile}
+
+			case "${conf_boot_fstype}" in
+			fat)
+				echo "conf_partition1_fstype=0xE" >> ${wfile}
+				;;
+			ext2|ext3|ext4)
+				echo "conf_partition1_fstype=0x83" >> ${wfile}
+				;;
+			esac
+
+			if [ "x${media_rootfs_partition}" = "x2" ] ; then
+				echo "conf_partition1_endmb=${conf_boot_endmb}" >> ${wfile}
+				echo "conf_partition2_fstype=0x83" >> ${wfile}
+			fi
+			echo "conf_root_partition=${media_rootfs_partition}" >> ${wfile}
+		fi
 	fi
 }
 
@@ -1618,4 +1658,5 @@ fi
 create_partitions
 populate_boot
 populate_rootfs
+exit 0
 #

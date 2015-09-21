@@ -197,7 +197,14 @@ chroot_umount () {
 	fi
 }
 
-trap chroot_umount EXIT
+chroot_umount_failure () {
+	chroot_umount
+	if [ ! -f ${DIR}/jenkins.build ] ; then
+		exit 1
+	fi
+}
+
+trap chroot_umount_failure EXIT
 
 check_defines
 
@@ -1124,16 +1131,35 @@ if [ "x${chroot_COPY_SETUP_SDCARD}" = "xenable" ] ; then
 
 fi
 
+packaging_keep_alive () {
+	while : ; do
+		sleep 15
+		echo "Log: [x---]: Creating: ${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar"
+		sleep 15
+		echo "Log: [-x--]: Creating: ${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar"
+		sleep 15
+		echo "Log: [--x-]: Creating: ${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar"
+		sleep 15
+		echo "Log: [---x]: Creating: ${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar"
+	done
+}
+
 if [ "x${chroot_directory}" = "xenable" ]; then
 	echo "Log: moving rootfs to directory: [${deb_arch}-rootfs-${deb_distribution}-${deb_codename}]"
 	sudo mv -v ${tempdir} ${DIR}/deploy/${export_filename}/${deb_arch}-rootfs-${deb_distribution}-${deb_codename}
 	du -h --max-depth=0 ${DIR}/deploy/${export_filename}/${deb_arch}-rootfs-${deb_distribution}-${deb_codename}
 else
 	cd ${tempdir}
+	if [ ! -f ${DIR}/jenkins.build ] ; then
+		packaging_keep_alive & PKG_KEEP_ALIVE_PID=$!
+	fi
 	echo "Log: packaging rootfs: [${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar]"
 	sudo LANG=C tar --numeric-owner -cf ${DIR}/deploy/${export_filename}/${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar .
 	cd ${DIR}/
 	ls -lh ${DIR}/deploy/${export_filename}/${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar
+	if [ ! -f ${DIR}/jenkins.build ] ; then
+		[ -e /proc/$PKG_KEEP_ALIVE_PID ] && sudo kill $PKG_KEEP_ALIVE_PID
+	fi
 fi
 
 sudo chown -R ${USER}:${USER} ${DIR}/deploy/${export_filename}/
@@ -1154,9 +1180,13 @@ keep_alive () {
 if [ "x${chroot_tarball}" = "xenable" ] ; then
 	echo "Creating: ${export_filename}.tar"
 	cd ${DIR}/deploy/
-	keep_alive & KEEP_ALIVE_PID=$!
+	if [ ! -f ${DIR}/jenkins.build ] ; then
+		keep_alive & KEEP_ALIVE_PID=$!
+	fi
 	tar cvf ${export_filename}.tar ./${export_filename}
-	[ -e /proc/$KEEP_ALIVE_PID ] && sudo kill $KEEP_ALIVE_PID
+	if [ ! -f ${DIR}/jenkins.build ] ; then
+		[ -e /proc/$KEEP_ALIVE_PID ] && sudo kill $KEEP_ALIVE_PID
+	fi
 	cd ${DIR}/
 fi
 #
