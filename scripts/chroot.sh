@@ -1184,7 +1184,7 @@ if [ "x${chroot_tarball}" = "xenable" ] ; then
 		keep_alive & KEEP_ALIVE_PID=$!
 	fi
 	tar cvf ${export_filename}.tar ./${export_filename}
-	if [ ! -f ${DIR}/jenkins.build ] ; then
+	if [ -f ${DIR}/jenkins.build ] ; then
 		[ -e /proc/$KEEP_ALIVE_PID ] && sudo kill $KEEP_ALIVE_PID
 	fi
 	cd ${DIR}/
