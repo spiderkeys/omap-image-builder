@@ -1176,7 +1176,7 @@ keep_alive () {
 		echo "Log: [---x]: Creating: ${export_filename}.tar"
 	done
 }
-
+set -x
 if [ "x${chroot_tarball}" = "xenable" ] ; then
 	echo "Creating: ${export_filename}.tar"
 	cd ${DIR}/deploy/
