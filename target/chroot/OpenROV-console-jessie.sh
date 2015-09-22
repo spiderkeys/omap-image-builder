@@ -82,6 +82,16 @@ git_clone_full () {
 	echo "${git_target_dir} : ${git_repo}" >> /opt/source/list.txt
 }
 
+cleanup_npm_cache () {
+	if [ -d /root/tmp/ ] ; then
+		rm -rf /root/tmp/ || true
+	fi
+
+	if [ -d /root/.npm ] ; then
+		rm -rf /root/.npm || true
+	fi
+}
+
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
 		cd /
