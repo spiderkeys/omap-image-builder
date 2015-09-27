@@ -13,7 +13,7 @@ export apt_proxy=localhost:3142/
 keep_net_alive () {
 	while : ; do
 		sleep 15
-		echo "size: [`ls -lh ./bone-${image_name}-${size}.img.xz`]"
+		echo "log: [Running: ./publish/bb.org_4gb_stable.sh]"
 	done
 }
 
@@ -27,8 +27,6 @@ build_and_upload_image () {
 		if [ -f bone-${image_name}-${size}.img ] ; then
 			sudo chown buildbot.buildbot bone-${image_name}-${size}.img
 			sudo chown buildbot.buildbot bone-${image_name}-${size}.img.xz.job.txt
-
-			keep_net_alive & KEEP_NET_ALIVE_PID=$!
 
 			sync ; sync ; sleep 5
 
@@ -44,14 +42,15 @@ build_and_upload_image () {
 			rsync -e ssh -av ./bone-${image_name}-${size}.img.xz.job.txt ${ssh_user}:${server_dir}/
 			rsync -e ssh -av ./bone-${image_name}-${size}.img.xz.sha256sum ${ssh_user}:${server_dir}/
 
-			[ -e /proc/$KEEP_NET_ALIVE_PID ] && sudo kill $KEEP_NET_ALIVE_PID
-
 			#cleanup:
 			cd ../../
-			rm -rf ./deploy/ || true
+			sudo rm -rf ./deploy/ || true
 		fi
 	fi
 }
+
+keep_net_alive & KEEP_NET_ALIVE_PID=$!
+echo "pid: [${KEEP_NET_ALIVE_PID}]"
 
 ## Stable/shipping
 ##Debian 7:
@@ -87,4 +86,6 @@ options="--img-2gb bone-${image_name} --dtb beaglebone \
 
 ./RootStock-NG.sh -c bb.org-debian-jessie-tester-2gb-v4.1
 build_and_upload_image
+
+[ -e /proc/$KEEP_NET_ALIVE_PID ] && sudo kill $KEEP_NET_ALIVE_PID
 
