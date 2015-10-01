@@ -194,25 +194,11 @@ install_node_pkgs () {
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump npm install
-
-			wfile="/lib/systemd/system/orov-proxy.socket"
-			echo "[Socket]" > ${wfile}
-			echo "ListenStream=3000" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=sockets.target" >> ${wfile}
-
-			wfile="/lib/systemd/system/orov-proxy.service"
-			echo "[Unit]" > ${wfile}
-			echo "Description=Proxy server" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Service]" >> ${wfile}
-			echo "WorkingDirectory=/opt/openrov/openrov-proxy/proxy-via-browser" >> ${wfile}
-			echo "ExecStart=/usr/bin/node app.js" >> ${wfile}
-			echo "SyslogIdentifier=orov-proxy" >> ${wfile}
-
-			systemctl enable orov-proxy.socket || true
-
+			cd proxy-via-browser
+			TERM=dump npm install
+			cd ${git_target_dir}/
+			ln -s /opt/openrov/openrov-proxy/proxy-via-browser/ /opt/openrov/proxy
+			bash install_lib/openrov-proxy-afterinstall.sh
 		fi
 
 		echo "Installing wetty"
@@ -286,6 +272,12 @@ install_git_repos () {
 		fi
 		cd /
 	fi
+}
+
+todo () {
+	#Setup nginx
+	cd /etc/nginx/sites-enabled/
+	cp /opt/openrov/image-customization/nginx/default default
 }
 
 
