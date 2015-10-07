@@ -173,7 +173,7 @@ install_node_pkgs () {
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dumb npm install
-			TERM-dumb npm run-script bower
+			TERM=dumb npm run-script bower
 			wfile="/lib/systemd/system/orov-dashboard.socket"
 			echo "[Socket]" > ${wfile}
 			echo "ListenStream=3080" >> ${wfile}
