@@ -139,7 +139,12 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dump npm install
+			TERM=dumb npm install
+			cd src/static
+			TERM=dumb npm install
+			TERM=dumb npm run bower
+			cd ../..
+
 
 			wfile="/lib/systemd/system/orov-cockpit.socket"
 			echo "[Socket]" > ${wfile}
@@ -167,8 +172,8 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dump npm install
-
+			TERM=dumb npm install
+			TERM-dumb npm run-script bower
 			wfile="/lib/systemd/system/orov-dashboard.socket"
 			echo "[Socket]" > ${wfile}
 			echo "ListenStream=3080" >> ${wfile}
@@ -194,13 +199,14 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dump npm install
+			TERM=dumb npm install
 			cd proxy-via-browser
-			TERM=dump npm install
+			TERM=dumb npm install
 			cd ${git_target_dir}/
 			ln -s /opt/openrov/openrov-proxy/proxy-via-browser/ /opt/openrov/proxy
 			bash install_lib/openrov-proxy-afterinstall.sh
 		fi
+
 
 		echo "Installing wetty"
 		TERM=dumb npm install -g wetty
