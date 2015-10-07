@@ -136,7 +136,7 @@ install_node_pkgs () {
 
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-		git_clone
+		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump npm install
@@ -154,16 +154,17 @@ install_node_pkgs () {
 			echo "" >> ${wfile}
 			echo "[Service]" >> ${wfile}
 			echo "WorkingDirectory=/opt/openrov/cockpit/src" >> ${wfile}
-			echo "ExecStart=/usr/bin/node app.js" >> ${wfile}
+			echo "ExecStart=/usr/bin/node cockpit.js" >> ${wfile}
 			echo "SyslogIdentifier=orov-cockpit" >> ${wfile}
 
 			systemctl enable orov-cockpit.socket || true
 
+			bash install_lib/openrov-cockpit-afterinstall.sh
 		fi
 
 		git_repo="https://github.com/openrov/openrov-dashboard"
 		git_target_dir="/opt/openrov/dashboard"
-		git_clone
+		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump npm install
@@ -181,7 +182,7 @@ install_node_pkgs () {
 			echo "" >> ${wfile}
 			echo "[Service]" >> ${wfile}
 			echo "WorkingDirectory=/opt/openrov/dashboard/src" >> ${wfile}
-			echo "ExecStart=/usr/bin/node app.js" >> ${wfile}
+			echo "ExecStart=/usr/bin/node dashboard.js" >> ${wfile}
 			echo "SyslogIdentifier=orov-dashboard" >> ${wfile}
 
 			systemctl enable orov-dashboard.socket || true
@@ -190,7 +191,7 @@ install_node_pkgs () {
 
 		git_repo="https://github.com/openrov/openrov-proxy"
 		git_target_dir="/opt/openrov/openrov-proxy"
-		git_clone
+		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dump npm install
