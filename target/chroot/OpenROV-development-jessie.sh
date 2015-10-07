@@ -158,6 +158,8 @@ install_node_pkgs () {
 			echo "Description=Cockpit server" >> ${wfile}
 			echo "" >> ${wfile}
 			echo "[Service]" >> ${wfile}
+			#http://stackoverflow.com/questions/22498753/no-data-from-socket-activation-with-systemd
+			echo "NonBlocking=True" >> ${wfile}
 			echo "WorkingDirectory=/opt/openrov/cockpit/src" >> ${wfile}
 			echo "ExecStart=/usr/bin/node cockpit.js" >> ${wfile}
 			echo "SyslogIdentifier=orov-cockpit" >> ${wfile}
@@ -186,6 +188,8 @@ install_node_pkgs () {
 			echo "Description=Cockpit server" >> ${wfile}
 			echo "" >> ${wfile}
 			echo "[Service]" >> ${wfile}
+			#http://stackoverflow.com/questions/22498753/no-data-from-socket-activation-with-systemd
+			echo "NonBlocking=True" >> ${wfile}
 			echo "WorkingDirectory=/opt/openrov/dashboard/src" >> ${wfile}
 			echo "ExecStart=/usr/bin/node dashboard.js" >> ${wfile}
 			echo "SyslogIdentifier=orov-dashboard" >> ${wfile}
