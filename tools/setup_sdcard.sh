@@ -1197,6 +1197,7 @@ populate_rootfs () {
 		echo "# This file describes the network interfaces available on your system" > ${wfile}
 		echo "# and how to activate them. For more information, see interfaces(5)." >> ${wfile}
 		echo "" >> ${wfile}
+		echo "source /etc/network/interfaces.d/*.cfg" >>  ${wfile} 
 		echo "# The loopback network interface" >> ${wfile}
 		echo "auto lo" >> ${wfile}
 		echo "iface lo inet loopback" >> ${wfile}
