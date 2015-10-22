@@ -41,6 +41,12 @@ export USERNAME=${rfs_username}
 
 echo "env: [`env`]"
 
+curl http://127.0.0.1:3000 > /dev/null
+if [ "$?" eq "0" ] ; then
+	export HTTP_PROXY=http://127.0.0.1:3000
+	export HTTPS_PROXY=http://127.0.0.1:3000
+fi
+
 is_this_qemu () {
 	unset warn_qemu_will_fail
 	if [ -f /usr/bin/qemu-arm-static ] ; then
