@@ -41,7 +41,7 @@ export USERNAME=${rfs_username}
 
 echo "env: [`env`]"
 
-curl http://127.0.0.1:3000 > /dev/null
+curl http://127.0.0.1:3000 > /dev/null || true
 if [ "$?" eq "0" ] ; then
 	export HTTP_PROXY=http://127.0.0.1:3000
 	export HTTPS_PROXY=http://127.0.0.1:3000
@@ -255,15 +255,6 @@ install_git_repos () {
 	git_target_dir="/opt/openrov/arduino"
 	git_clone
 
-	git_repo="https://github.com/openrov/openrov-image-customization"
-	git_target_dir="/opt/openrov/image-customization"
-	git_branch="jessie"
-	git_clone_branch
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		./afterinstall.sh || true
-	fi
-
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
 	git_branch="4.1-ti"
 	git_target_dir="/opt/source/dtb-${git_branch}"
@@ -289,6 +280,16 @@ install_git_repos () {
 		fi
 		cd /
 	fi
+
+	git_repo="https://github.com/openrov/openrov-image-customization"
+	git_target_dir="/opt/openrov/image-customization"
+	git_branch="jessie"
+	git_clone_branch
+	if [ -f ${git_target_dir}/.git/config ] ; then
+		cd ${git_target_dir}/
+		./afterinstall.sh || true
+	fi
+
 }
 
 todo () {
