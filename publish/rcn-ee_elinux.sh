@@ -13,10 +13,12 @@ fi
 ./RootStock-NG.sh -c rcn-ee_console_debian_jessie_armhf
 ./RootStock-NG.sh -c rcn-ee_console_debian_stretch_armhf
 ./RootStock-NG.sh -c rcn-ee_console_ubuntu_trusty_armhf
+./RootStock-NG.sh -c rcn-ee_console_ubuntu_xenial_armhf
 
 debian_stable="debian-8.2-console-armhf-${time}"
 debian_testing="debian-stretch-console-armhf-${time}"
 ubuntu_stable="ubuntu-14.04.3-console-armhf-${time}"
+ubuntu_testing="ubuntu-xenial-console-armhf-${time}"
 
 archive="xz -z -8"
 
@@ -106,7 +108,6 @@ base_rootfs="${debian_stable}" ; blend="elinux" ; extract_base_rootfs
 
 options="--img BBB-eMMC-flasher-${debian_stable} --dtb beaglebone --emmc-flasher --bbb-old-bootloader-in-emmc" ; generate_img
 options="--img bone-${debian_stable} --dtb beaglebone --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bbxm-${debian_stable} --dtb omap3-beagle-xm" ; generate_img
 options="--img bbx15-${debian_stable} --dtb am57xx-beagle-x15" ; generate_img
 options="--img bbx15-eMMC-flasher-${debian_stable} --dtb am57xx-beagle-x15 --emmc-flasher" ; generate_img
 options="--img omap5-uevm-${debian_stable} --dtb omap5-uevm" ; generate_img
@@ -116,7 +117,6 @@ base_rootfs="${ubuntu_stable}" ; blend="elinux" ; extract_base_rootfs
 
 options="--img BBB-eMMC-flasher-${ubuntu_stable} --dtb beaglebone --emmc-flasher  --bbb-old-bootloader-in-emmc" ; generate_img
 options="--img bone-${ubuntu_stable} --dtb beaglebone --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bbxm-${ubuntu_stable} --dtb omap3-beagle-xm" ; generate_img
 options="--img bbx15-${ubuntu_stable} --dtb am57xx-beagle-x15" ; generate_img
 options="--img bbx15-eMMC-flasher-${ubuntu_stable} --dtb am57xx-beagle-x15 --emmc-flasher" ; generate_img
 options="--img omap5-uevm-${ubuntu_stable} --dtb omap5-uevm" ; generate_img
@@ -125,16 +125,15 @@ options="--img omap5-uevm-${ubuntu_stable} --dtb omap5-uevm" ; generate_img
 base_rootfs="${debian_stable}" ; blend="elinux" ; archive_base_rootfs
 base_rootfs="${ubuntu_stable}" ; blend="elinux" ; archive_base_rootfs
 base_rootfs="${debian_testing}" ; blend="elinux" ; archive_base_rootfs
+base_rootfs="${ubuntu_testing}" ; blend="elinux" ; archive_base_rootfs
 
 #Archive img:
 blend="microsd"
 wfile="bone-${debian_stable}-2gb" ; archive_img
-wfile="bbxm-${debian_stable}-2gb" ; archive_img
 wfile="bbx15-${debian_stable}-2gb" ; archive_img
 wfile="omap5-uevm-${debian_stable}-2gb" ; archive_img
 
 wfile="bone-${ubuntu_stable}-2gb" ; archive_img
-wfile="bbxm-${ubuntu_stable}-2gb" ; archive_img
 wfile="bbx15-${ubuntu_stable}-2gb" ; archive_img
 wfile="omap5-uevm-${ubuntu_stable}-2gb" ; archive_img
 

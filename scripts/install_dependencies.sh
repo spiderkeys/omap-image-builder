@@ -22,7 +22,7 @@
 
 #http://ftp.us.debian.org/debian/pool/main/d/debootstrap/
 #1.0.${minimal_debootstrap}
-minimal_debootstrap="72"
+minimal_debootstrap="73"
 host_arch="$(uname -m)"
 
 debootstrap_is_installed () {
@@ -39,7 +39,7 @@ debootstrap_is_installed () {
 	if [ "${deb_pkgs}" ] ; then
 		echo "Installing: ${deb_pkgs}"
 		sudo apt-get update
-		sudo apt-get -y install "${deb_pkgs}"
+		sudo apt-get -y install ${deb_pkgs}
 	fi
 }
 
@@ -58,5 +58,3 @@ if [[ "$test_debootstrap" < "$minimal_debootstrap" ]] ; then
 	rm -rf debootstrap_1.0.${minimal_debootstrap}_all.deb || true
 fi
 
-#1.0.64:
-#added vivid

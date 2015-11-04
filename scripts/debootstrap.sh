@@ -56,7 +56,10 @@ check_defines () {
 		options="${options} --variant=${deb_variant}"
 	fi
 
-	options="${options} --foreign"
+	if [ ! "${deb_distribution}" ] ; then
+		echo "scripts/deboostrap_first_stage.sh: Error: deb_distribution undefined"
+		exit 1
+	fi
 
 	unset suite
 	if [ ! "${deb_codename}" ] ; then
@@ -66,17 +69,32 @@ check_defines () {
 		suite="${deb_codename}"
 	fi
 
+	case "${deb_distribution}" in
+	debian)
+		if [ ! -f /usr/share/debootstrap/scripts/${suite} ] ; then
+			sudo ln -s /usr/share/debootstrap/scripts/sid /usr/share/debootstrap/scripts/${suite}
+		fi
+		if [ ! -f /usr/share/keyrings/debian-archive-keyring.gpg ] ; then
+			options="${options} --no-check-gpg"
+		fi
+		;;
+	ubuntu)
+		if [ ! -f /usr/share/debootstrap/scripts/${release} ] ; then
+			sudo ln -s /usr/share/debootstrap/scripts/gutsy /usr/share/debootstrap/scripts/${release}
+		fi
+		if [ ! -f /usr/share/keyrings/ubuntu-archive-keyring.gpg ] ; then
+			options="${options} --no-check-gpg"
+		fi
+		;;
+	esac
+	options="${options} --foreign"
+
 	unset target
 	if [ ! "${tempdir}" ] ; then
 		echo "scripts/deboostrap_first_stage.sh: Error: tempdir undefined"
 		exit 1
 	else
 		target="${tempdir}"
-	fi
-
-	if [ ! "${deb_distribution}" ] ; then
-		echo "scripts/deboostrap_first_stage.sh: Error: deb_distribution undefined"
-		exit 1
 	fi
 
 	unset mirror

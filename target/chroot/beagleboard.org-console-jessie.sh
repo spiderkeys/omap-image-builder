@@ -22,7 +22,7 @@
 
 export LC_ALL=C
 
-u_boot_release="v2015.10-rc3"
+u_boot_release="v2015.10"
 u_boot_release_x15="v2015.07"
 #bone101_git_sha="50e01966e438ddc43b9177ad4e119e5274a0130d"
 
@@ -187,9 +187,9 @@ setup_desktop () {
 	if [ -f /usr/bin/pastebinit ] ; then
 		wfile="/home/${rfs_username}/.pastebinit.xml"
 		echo "<pastebinit>" > ${wfile}
-		echo "    <pastebin>http://paste.debian.net</pastebin>" >> ${wfile}
-		echo "    <author>anonymous</author>" >> ${wfile}
-		echo "    <jabberid>author@example.net</jabberid>" >> ${wfile}
+		echo "    <pastebin>https://paste.debian.net</pastebin>" >> ${wfile}
+		echo "    <author>A pastebinit user</author>" >> ${wfile}
+		echo "    <jabberid>nobody@nowhere.org</jabberid>" >> ${wfile}
 		echo "    <format>text</format>" >> ${wfile}
 		echo "</pastebinit>" >> ${wfile}
 		chown ${rfs_username}:${rfs_username} ${wfile}
@@ -231,6 +231,7 @@ install_pip_pkgs () {
 			cd ${git_target_dir}/
 			python setup.py install
 		fi
+		pip install --upgrade PyBBIO
 	fi
 }
 
@@ -433,18 +434,6 @@ install_git_repos () {
 		cd /
 	fi
 
-	git_repo="https://github.com/alexanderhiam/PyBBIO.git"
-	git_target_dir="/opt/source/PyBBIO"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		if [ -f /usr/bin/dtc ] ; then
-			sed -i "s/PLATFORM = ''/PLATFORM = 'BeagleBone >=3.8'/g" setup.py
-			python setup.py install
-		fi
-		cd /
-	fi
-
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
 	git_branch="4.1-ti"
 	git_target_dir="/opt/source/dtb-${git_branch}"
@@ -514,24 +503,6 @@ unsecure_root () {
 	fi
 }
 
-todo () {
-	#stuff i need to package in repos.rcn-ee.com
-	#
-	is_kernel=$(echo ${repo_rcnee_pkg_version} | grep 4.1)
-	if [ ! "x${is_kernel}" = "x" ] ; then
-		cd /
-		if [ ! -f /etc/Wireless/RT2870STA/RT2870STA.dat ] ; then
-			mkdir -p /etc/Wireless/RT2870STA/
-			cd /etc/Wireless/RT2870STA/
-			wget https://raw.githubusercontent.com/rcn-ee/mt7601u/master/src/RT2870STA.dat
-			cd /
-		fi
-		if [ ! -f /etc/modules-load.d/mt7601.conf ] ; then
-			echo "mt7601Usta" > /etc/modules-load.d/mt7601.conf
-		fi
-	fi
-}
-
 is_this_qemu
 
 setup_system
@@ -550,5 +521,4 @@ fi
 #install_build_pkgs
 other_source_links
 unsecure_root
-todo
 #

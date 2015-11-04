@@ -249,6 +249,7 @@ generate_soc () {
 		echo "board=${board}" >> ${wfile}
 		echo "" >> ${wfile}
 		echo "bootloader_location=${bootloader_location}" >> ${wfile}
+		echo "bootrom_gpt=${bootrom_gpt}" >> ${wfile}
 		echo "" >> ${wfile}
 		echo "dd_spl_uboot_count=${dd_spl_uboot_count}" >> ${wfile}
 		echo "dd_spl_uboot_seek=${dd_spl_uboot_seek}" >> ${wfile}
@@ -334,13 +335,18 @@ sfdisk_partition_layout () {
 	test_sfdisk=$(LC_ALL=C sfdisk --help | grep -m 1 -e "--in-order" || true)
 	if [ "x${test_sfdisk}" = "x" ] ; then
 		echo "log: sfdisk: 2.26.x or greater detected"
-		sfdisk_options="--force"
+		sfdisk_options="--force ${sfdisk_gpt}"
 		sfdisk_boot_startmb="${sfdisk_boot_startmb}M"
 		sfdisk_boot_endmb="${sfdisk_boot_endmb}M"
 		sfdisk_var_startmb="${sfdisk_var_startmb}M"
 	fi
 
 	if [ "x${option_ro_root}" = "xenable" ] ; then
+		echo "sfdisk: [$(LC_ALL=C sfdisk --version)]"
+		echo "sfdisk: [${sfdisk_options} ${media}]"
+		echo "sfdisk: [${sfdisk_boot_startmb},${sfdisk_boot_endmb},${sfdisk_fstype},*]"
+		echo "sfdisk: [,${sfdisk_var_startmb},,-]"
+		echo "sfdisk: [,,,-]"
 
 		LC_ALL=C sfdisk ${sfdisk_options} "${media}" <<-__EOF__
 			${sfdisk_boot_startmb},${sfdisk_boot_endmb},${sfdisk_fstype},*
@@ -350,6 +356,10 @@ sfdisk_partition_layout () {
 
 		media_rootfs_var_partition=3
 	else
+		echo "sfdisk: [$(LC_ALL=C sfdisk --version)]"
+		echo "sfdisk: [${sfdisk_options} ${media}]"
+		echo "sfdisk: [${sfdisk_boot_startmb},${sfdisk_boot_endmb},${sfdisk_fstype},*]"
+		echo "sfdisk: [,,,-]"
 
 		LC_ALL=C sfdisk ${sfdisk_options} "${media}" <<-__EOF__
 			${sfdisk_boot_startmb},${sfdisk_boot_endmb},${sfdisk_fstype},*
@@ -369,12 +379,16 @@ sfdisk_single_partition_layout () {
 	test_sfdisk=$(LC_ALL=C sfdisk --help | grep -m 1 -e "--in-order" || true)
 	if [ "x${test_sfdisk}" = "x" ] ; then
 		echo "log: sfdisk: 2.26.x or greater detected"
-		sfdisk_options="--force"
+		sfdisk_options="--force ${sfdisk_gpt}"
 		sfdisk_boot_startmb="${sfdisk_boot_startmb}M"
 		sfdisk_var_startmb="${sfdisk_var_startmb}M"
 	fi
 
 	if [ "x${option_ro_root}" = "xenable" ] ; then
+		echo "sfdisk: [$(LC_ALL=C sfdisk --version)]"
+		echo "sfdisk: [${sfdisk_options} ${media}]"
+		echo "sfdisk: [${sfdisk_boot_startmb},${sfdisk_boot_endmb},${sfdisk_fstype},*]"
+		echo "sfdisk: [,,,-]"
 
 		LC_ALL=C sfdisk ${sfdisk_options} "${media}" <<-__EOF__
 			${sfdisk_boot_startmb},${sfdisk_var_startmb},${sfdisk_fstype},*
@@ -383,6 +397,9 @@ sfdisk_single_partition_layout () {
 
 		media_rootfs_var_partition=2
 	else
+		echo "sfdisk: [$(LC_ALL=C sfdisk --version)]"
+		echo "sfdisk: [${sfdisk_options} ${media}]"
+		echo "sfdisk: [${sfdisk_boot_startmb},,${sfdisk_fstype},*]"
 
 		LC_ALL=C sfdisk ${sfdisk_options} "${media}" <<-__EOF__
 			${sfdisk_boot_startmb},,${sfdisk_fstype},*
@@ -539,6 +556,7 @@ format_rootfs_partition () {
 
 create_partitions () {
 	unset bootloader_installed
+	unset sfdisk_gpt
 
 	media_boot_partition=1
 	media_rootfs_partition=2
@@ -558,6 +576,9 @@ create_partitions () {
 	dd_uboot_boot)
 		echo "Using dd to place bootloader on drive"
 		echo "-----------------------------"
+		if [ "x${bootrom_gpt}" = "xenable" ] ; then
+			sfdisk_gpt="--label gpt"
+		fi
 		dd_uboot_boot
 		bootloader_installed=1
 		sfdisk_single_partition_layout
@@ -566,6 +587,9 @@ create_partitions () {
 	dd_spl_uboot_boot)
 		echo "Using dd to place bootloader on drive"
 		echo "-----------------------------"
+		if [ "x${bootrom_gpt}" = "xenable" ] ; then
+			sfdisk_gpt="--label gpt"
+		fi
 		dd_spl_uboot_boot
 		dd_uboot_boot
 		bootloader_installed=1
@@ -1081,6 +1105,10 @@ populate_rootfs () {
 		cmdline="${cmdline} init=/lib/systemd/systemd"
 	fi
 
+	if [ "x${conf_board}" = "xam335x_boneblack" ] || [ "x${conf_board}" = "xam335x_evm" ] ; then
+		cmdline="${cmdline} cape_universal=enable"
+	fi
+
 	unset kms_video
 
 	drm_device_identifier=${drm_device_identifier:-"HDMI-A-1"}
@@ -1450,7 +1478,7 @@ process_dtb_conf () {
 		sfdisk_fstype="0xE"
 		;;
 	ext2|ext3|ext4)
-		sfdisk_fstype="0x83"
+		sfdisk_fstype="L"
 		;;
 	*)
 		echo "Error: [conf_boot_fstype] not recognized, stopping..."
