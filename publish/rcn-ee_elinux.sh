@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 time=$(date +%Y-%m-%d)
-mirror_dir="/var/www/html/rcn-ee.net/rootfs/"
+mirror_dir="/var/www/html/rcn-ee.us/rootfs/"
 DIR="$PWD"
 
 export apt_proxy=apt-proxy:3142/
@@ -11,16 +11,22 @@ if [ -d ./deploy ] ; then
 fi
 
 ./RootStock-NG.sh -c rcn-ee_console_debian_jessie_armhf
-./RootStock-NG.sh -c rcn-ee_console_debian_stretch_armhf
+#./RootStock-NG.sh -c rcn-ee_console_debian_stretch_armhf
 ./RootStock-NG.sh -c rcn-ee_console_ubuntu_trusty_armhf
 ./RootStock-NG.sh -c rcn-ee_console_ubuntu_xenial_armhf
 
-debian_stable="debian-8.2-console-armhf-${time}"
+debian_stable="debian-8.3-console-armhf-${time}"
 debian_testing="debian-stretch-console-armhf-${time}"
 ubuntu_stable="ubuntu-14.04.3-console-armhf-${time}"
 ubuntu_testing="ubuntu-xenial-console-armhf-${time}"
 
 archive="xz -z -8"
+
+beaglebone="--dtb beaglebone --bbb-old-bootloader-in-emmc \
+--rootfs_label rootfs"
+
+omap5_uevm="--dtb omap5-uevm --rootfs_label rootfs"
+am57xx_beagle_x15="--dtb am57xx-beagle-x15 --rootfs_label rootfs"
 
 cat > ${DIR}/deploy/gift_wrap_final_images.sh <<-__EOF__
 #!/bin/bash
@@ -57,7 +63,9 @@ extract_base_rootfs () {
 
         if [ -f \${base_rootfs}.tar.xz ] ; then
                 tar xf \${base_rootfs}.tar.xz
-        else
+        fi
+
+        if [ -f \${base_rootfs}.tar ] ; then
                 tar xf \${base_rootfs}.tar
         fi
 }
@@ -96,30 +104,32 @@ archive_img () {
 }
 
 generate_img () {
-        cd \${base_rootfs}/
-        sudo ./setup_sdcard.sh \${options}
-        mv *.img ../
-        mv *.job.txt ../
-        cd ..
+        if [ -d \${base_rootfs}/ ] ; then
+                cd \${base_rootfs}/
+                sudo ./setup_sdcard.sh \${options}
+                mv *.img ../
+                mv *.job.txt ../
+                cd ..
+        fi
 }
 
 #Debian Stable
 base_rootfs="${debian_stable}" ; blend="elinux" ; extract_base_rootfs
 
-options="--img BBB-eMMC-flasher-${debian_stable} --dtb beaglebone --emmc-flasher --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bone-${debian_stable} --dtb beaglebone --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bbx15-${debian_stable} --dtb am57xx-beagle-x15" ; generate_img
-options="--img bbx15-eMMC-flasher-${debian_stable} --dtb am57xx-beagle-x15 --emmc-flasher" ; generate_img
-options="--img omap5-uevm-${debian_stable} --dtb omap5-uevm" ; generate_img
+options="--img BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --emmc-flasher" ; generate_img
+options="--img bone-\${base_rootfs} ${beaglebone}" ; generate_img
+options="--img bbx15-eMMC-flasher-\${base_rootfs} ${am57xx_beagle_x15} --emmc-flasher" ; generate_img
+options="--img bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
+options="--img omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
 
 #Ubuntu Stable
 base_rootfs="${ubuntu_stable}" ; blend="elinux" ; extract_base_rootfs
 
-options="--img BBB-eMMC-flasher-${ubuntu_stable} --dtb beaglebone --emmc-flasher  --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bone-${ubuntu_stable} --dtb beaglebone --bbb-old-bootloader-in-emmc" ; generate_img
-options="--img bbx15-${ubuntu_stable} --dtb am57xx-beagle-x15" ; generate_img
-options="--img bbx15-eMMC-flasher-${ubuntu_stable} --dtb am57xx-beagle-x15 --emmc-flasher" ; generate_img
-options="--img omap5-uevm-${ubuntu_stable} --dtb omap5-uevm" ; generate_img
+options="--img BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --emmc-flasher" ; generate_img
+options="--img bone-\${base_rootfs} ${beaglebone}" ; generate_img
+options="--img bbx15-eMMC-flasher-\${base_rootfs} ${am57xx_beagle_x15} --emmc-flasher" ; generate_img
+options="--img bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
+options="--img omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
 
 #Archive tar:
 base_rootfs="${debian_stable}" ; blend="elinux" ; archive_base_rootfs
@@ -128,21 +138,23 @@ base_rootfs="${debian_testing}" ; blend="elinux" ; archive_base_rootfs
 base_rootfs="${ubuntu_testing}" ; blend="elinux" ; archive_base_rootfs
 
 #Archive img:
-blend="microsd"
-wfile="bone-${debian_stable}-2gb" ; archive_img
-wfile="bbx15-${debian_stable}-2gb" ; archive_img
-wfile="omap5-uevm-${debian_stable}-2gb" ; archive_img
+base_rootfs="${debian_stable}" ; blend="microsd"
+wfile="bone-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-\${base_rootfs}-2gb" ; archive_img
+wfile="omap5-uevm-\${base_rootfs}-2gb" ; archive_img
 
-wfile="bone-${ubuntu_stable}-2gb" ; archive_img
-wfile="bbx15-${ubuntu_stable}-2gb" ; archive_img
-wfile="omap5-uevm-${ubuntu_stable}-2gb" ; archive_img
+base_rootfs="${ubuntu_stable}" ; blend="microsd"
+wfile="bone-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-\${base_rootfs}-2gb" ; archive_img
+wfile="omap5-uevm-\${base_rootfs}-2gb" ; archive_img
 
-blend="flasher"
-wfile="BBB-eMMC-flasher-${debian_stable}-2gb" ; archive_img
-wfile="bbx15-eMMC-flasher-${debian_stable}-2gb" ; archive_img
+base_rootfs="${debian_stable}" ; blend="flasher"
+wfile="BBB-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
 
-wfile="BBB-eMMC-flasher-${ubuntu_stable}-2gb" ; archive_img
-wfile="bbx15-eMMC-flasher-${ubuntu_stable}-2gb" ; archive_img
+base_rootfs="${ubuntu_stable}" ; blend="flasher"
+wfile="BBB-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
 
 __EOF__
 

@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 time=$(date +%Y-%m-%d)
-mirror_dir="/var/www/html/rcn-ee.net/rootfs/eewiki"
+mirror_dir="/var/www/html/rcn-ee.us/rootfs/eewiki"
 DIR="$PWD"
 host=$(uname -n)
 
@@ -19,7 +19,7 @@ fi
 ./RootStock-NG.sh -c eewiki_minfs_debian_jessie_armhf
 ./RootStock-NG.sh -c eewiki_minfs_ubuntu_trusty_armhf
 
-debian_stable="debian-8.2"
+debian_stable="debian-8.3"
 ubuntu_stable="ubuntu-14.04.3"
 archive="xz -z -8"
 

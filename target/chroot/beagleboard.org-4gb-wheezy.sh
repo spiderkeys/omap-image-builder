@@ -23,7 +23,7 @@
 export LC_ALL=C
 
 chromium_release="chromium-33.0.1750.117"
-u_boot_release="v2015.10"
+u_boot_release="v2016.01"
 u_boot_release_x15="v2015.07"
 #bone101_git_sha="50e01966e438ddc43b9177ad4e119e5274a0130d"
 
@@ -165,9 +165,7 @@ setup_desktop () {
 
 	#Disable LXDE's screensaver on autostart
 	if [ -f /etc/xdg/lxsession/LXDE/autostart ] ; then
-		cat /etc/xdg/lxsession/LXDE/autostart | grep -v xscreensaver > /tmp/autostart
-		mv /tmp/autostart /etc/xdg/lxsession/LXDE/autostart
-		rm -rf /tmp/autostart || true
+		sed -i '/xscreensaver/s/^/#/' /etc/xdg/lxsession/LXDE/autostart
 	fi
 
 	#echo "CAPE=cape-bone-proto" >> /etc/default/capemgr
@@ -183,18 +181,6 @@ setup_desktop () {
 			sed -i -e 's:Exec=lxterminal:Exec=lxterminal -l -e bash:g' /usr/share/applications/lxterminal.desktop
 			sed -i -e 's:TryExec=lxterminal -l -e bash:TryExec=lxterminal:g' /usr/share/applications/lxterminal.desktop
 		fi
-	fi
-
-	#ti: firewall blocks pastebin.com
-	if [ -f /usr/bin/pastebinit ] ; then
-		wfile="/home/${rfs_username}/.pastebinit.xml"
-		echo "<pastebinit>" > ${wfile}
-		echo "    <pastebin>https://paste.debian.net</pastebin>" >> ${wfile}
-		echo "    <author>A pastebinit user</author>" >> ${wfile}
-		echo "    <jabberid>nobody@nowhere.org</jabberid>" >> ${wfile}
-		echo "    <format>text</format>" >> ${wfile}
-		echo "</pastebinit>" >> ${wfile}
-		chown ${rfs_username}:${rfs_username} ${wfile}
 	fi
 }
 
@@ -240,7 +226,6 @@ install_pip_pkgs () {
 
 		easy_install -U distribute
 		pip install Adafruit_BBIO
-		pip install --upgrade PyBBIO
 	fi
 }
 
@@ -251,6 +236,10 @@ cleanup_npm_cache () {
 
 	if [ -d /root/.npm ] ; then
 		rm -rf /root/.npm || true
+	fi
+
+	if [ -f /home/${rfs_username}/.npmrc ] ; then
+		rm -f /home/${rfs_username}/.npmrc || true
 	fi
 }
 

@@ -232,7 +232,12 @@ trap chroot_stopped EXIT
 check_defines
 
 if [ "x${host_arch}" != "xarmv7l" ] && [ "x${host_arch}" != "xaarch64" ] ; then
-	sudo cp $(which qemu-arm-static) "${tempdir}/usr/bin/"
+	if [ "x${deb_arch}" = "xarmel" ] || [ "x${deb_arch}" = "xarmhf" ] ; then
+		sudo cp $(which qemu-arm-static) "${tempdir}/usr/bin/"
+	fi
+	if [ "x${deb_arch}" = "xarm64" ] ; then
+		sudo cp $(which qemu-aarch64-static) "${tempdir}/usr/bin/"
+	fi
 fi
 
 chroot_mount_run
@@ -380,6 +385,12 @@ if [ "x${repo_rcnee}" = "xenable" ] ; then
 	echo "deb [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
 	echo "#deb-src [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
 
+	if [ "x${exp_repo_rcnee_jessie_nodejs}" = "xenable" ] ; then
+		echo "#" >> ${wfile}
+		echo "deb [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}-nodejs/ jessie main" >> ${wfile}
+		echo "#deb-src [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}-nodejs/ jessie main" >> ${wfile}
+	fi
+
 	sudo cp -v "${OIB_DIR}/target/keyring/repos.rcn-ee.net-archive-keyring.asc" "${tempdir}/tmp/repos.rcn-ee.net-archive-keyring.asc"
 fi
 
@@ -406,9 +417,11 @@ echo "::1     localhost ip6-localhost ip6-loopback" >> /tmp/hosts
 echo "ff02::1 ip6-allnodes" >> /tmp/hosts
 echo "ff02::2 ip6-allrouters" >> /tmp/hosts
 sudo mv /tmp/hosts "${tempdir}/etc/hosts"
+sudo chown root:root "${tempdir}/etc/hosts"
 
 echo "${rfs_hostname}" > /tmp/hostname
 sudo mv /tmp/hostname "${tempdir}/etc/hostname"
+sudo chown root:root "${tempdir}/etc/hostname"
 
 if [ "x${deb_arch}" = "xarmhf" ] ; then
 	case "${deb_distribution}" in
@@ -416,15 +429,21 @@ if [ "x${deb_arch}" = "xarmhf" ] ; then
 		case "${deb_codename}" in
 		wheezy)
 			sudo cp "${OIB_DIR}/target/init_scripts/generic-${deb_distribution}.sh" "${tempdir}/etc/init.d/generic-boot-script.sh"
+			sudo chown root:root "${tempdir}/etc/init.d/generic-boot-script.sh"
 			sudo cp "${OIB_DIR}/target/init_scripts/capemgr-${deb_distribution}.sh" "${tempdir}/etc/init.d/capemgr.sh"
+			sudo chown root:root "${tempdir}/etc/init.d/capemgr.sh"
 			sudo cp "${OIB_DIR}/target/init_scripts/capemgr" "${tempdir}/etc/default/"
+			sudo chown root:root "${tempdir}/etc/default/capemgr"
 			distro="Debian"
 			;;
 		jessie|stretch)
 			#while bb-customizations installes "generic-board-startup.service" other boards/configs could use this default.
 			sudo cp "${OIB_DIR}/target/init_scripts/systemd-generic-board-startup.service" "${tempdir}/lib/systemd/system/generic-board-startup.service"
+			sudo chown root:root "${tempdir}/lib/systemd/system/generic-board-startup.service"
 			sudo cp "${OIB_DIR}/target/init_scripts/systemd-capemgr.service" "${tempdir}/lib/systemd/system/capemgr.service"
+			sudo chown root:root "${tempdir}/lib/systemd/system/capemgr.service"
 			sudo cp "${OIB_DIR}/target/init_scripts/capemgr" "${tempdir}/etc/default/"
+			sudo chown root:root "${tempdir}/etc/default/capemgr"
 			distro="Debian"
 			;;
 		esac
@@ -433,8 +452,11 @@ if [ "x${deb_arch}" = "xarmhf" ] ; then
 		case "${deb_codename}" in
 		trusty)
 			sudo cp "${OIB_DIR}/target/init_scripts/generic-${deb_distribution}.conf" "${tempdir}/etc/init/generic-boot-script.conf"
+			sudo chown root:root "${tempdir}/etc/init/generic-boot-script.conf"
 			sudo cp "${OIB_DIR}/target/init_scripts/capemgr-${deb_distribution}.sh" "${tempdir}/etc/init/capemgr.sh"
+			sudo chown root:root "${tempdir}/etc/init/capemgr.sh"
 			sudo cp "${OIB_DIR}/target/init_scripts/capemgr" "${tempdir}/etc/default/"
+			sudo chown root:root "${tempdir}/etc/default/capemgr"
 			distro="Ubuntu"
 
 			if [ -f "${tempdir}/etc/init/failsafe.conf" ] ; then
@@ -447,8 +469,11 @@ if [ "x${deb_arch}" = "xarmhf" ] ; then
 		vivid|wily|xenial)
 			#while bb-customizations installes "generic-board-startup.service" other boards/configs could use this default.
 			sudo cp "${OIB_DIR}/target/init_scripts/systemd-generic-board-startup.service" "${tempdir}/lib/systemd/system/generic-board-startup.service"
+			sudo chown root:root "${tempdir}/lib/systemd/system/generic-board-startup.service"
 			sudo cp "${OIB_DIR}/target/init_scripts/systemd-capemgr.service" "${tempdir}/lib/systemd/system/capemgr.service"
+			sudo chown root:root "${tempdir}/lib/systemd/system/generic-board-startup.service"
 			sudo cp "${OIB_DIR}/target/init_scripts/capemgr" "${tempdir}/etc/default/"
+			sudo chown root:root "${tempdir}/etc/default/capemgr"
 			distro="Ubuntu"
 			;;
 		esac
@@ -460,6 +485,8 @@ if [ -d "${tempdir}/usr/share/initramfs-tools/hooks/" ] ; then
 	if [ ! -f "${tempdir}/usr/share/initramfs-tools/hooks/dtbo" ] ; then
 		echo "log: adding: [initramfs-tools hook: dtbo]"
 		sudo cp "${OIB_DIR}/target/other/dtbo" "${tempdir}/usr/share/initramfs-tools/hooks/"
+		sudo chmod +x "${tempdir}/usr/share/initramfs-tools/hooks/dtbo"
+		sudo chown root:root "${tempdir}/usr/share/initramfs-tools/hooks/dtbo"
 	fi
 fi
 
@@ -470,11 +497,11 @@ echo "release_date=${time}" >> /tmp/rcn-ee.conf
 echo "third_party_modules=${third_party_modules}" >> /tmp/rcn-ee.conf
 echo "abi=${abi}" >> /tmp/rcn-ee.conf
 sudo mv /tmp/rcn-ee.conf "${tempdir}/etc/rcn-ee.conf"
+sudo chown root:root "${tempdir}/etc/rcn-ee.conf"
 
 #use /etc/dogtag for all:
 if [ ! "x${rfs_etc_dogtag}" = "x" ] ; then
-	echo "${rfs_etc_dogtag} ${time}" > /tmp/dogtag
-	sudo mv /tmp/dogtag "${tempdir}/etc/dogtag"
+	sudo sh -c "echo '${rfs_etc_dogtag} ${time}' > '${tempdir}/etc/dogtag'"
 fi
 
 cat > "${DIR}/chroot_script.sh" <<-__EOF__
@@ -494,6 +521,9 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 	is_this_qemu () {
 		unset warn_qemu_will_fail
 		if [ -f /usr/bin/qemu-arm-static ] ; then
+			warn_qemu_will_fail=1
+		fi
+		if [ -f /usr/bin/qemu-aarch64-static ] ; then
 			warn_qemu_will_fail=1
 		fi
 	}
@@ -717,6 +747,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 		cat /etc/group | grep ^kmem || groupadd -r kmem || true
 		cat /etc/group | grep ^netdev || groupadd -r netdev || true
 		cat /etc/group | grep ^systemd-journal || groupadd -r systemd-journal || true
+		cat /etc/group | grep ^tisdk || groupadd -r tisdk || true
 		cat /etc/group | grep ^weston-launch || groupadd -r weston-launch || true
 		cat /etc/group | grep ^xenomai || groupadd -r xenomai || true
 
@@ -726,7 +757,10 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 		echo "SUBSYSTEM==\"uio\", SYMLINK+=\"uio/%s{device/of_node/uio-alias}\"" > /etc/udev/rules.d/uio.rules
 		echo "SUBSYSTEM==\"uio\", GROUP=\"users\", MODE=\"0660\"" >> /etc/udev/rules.d/uio.rules
 
-		default_groups="admin,adm,dialout,i2c,kmem,spi,cdrom,floppy,audio,dip,video,netdev,plugdev,users,systemd-journal,weston-launch,xenomai"
+		echo "SUBSYSTEM==\"cmem\", GROUP=\"tisdk\", MODE=\"0660\"" > /etc/udev/rules.d/tisdk.rules
+		echo "SUBSYSTEM==\"rpmsg_rpc\", GROUP=\"tisdk\", MODE=\"0660\"" >> /etc/udev/rules.d/tisdk.rules
+
+		default_groups="admin,adm,dialout,i2c,kmem,spi,cdrom,floppy,audio,dip,video,netdev,plugdev,users,systemd-journal,tisdk,weston-launch,xenomai"
 
 		pkg="sudo"
 		dpkg_check
@@ -937,8 +971,8 @@ if [ "x${include_firmware}" = "xenable" ] ; then
 		sudo cp -v "${DIR}"/git/linux-firmware/ti-connectivity/* "${tempdir}/lib/firmware/ti-connectivity"
 	fi
 
-	if [ -f "${DIR}/git/mt7601u/src/mcu/bin/MT7601.bin" ] ; then
-		sudo cp -v "${DIR}/git/mt7601u/src/mcu/bin/MT7601.bin" "${tempdir}/lib/firmware/mt7601u.bin"
+	if [ -f "${DIR}/git/linux-firmware/mt7601u.bin" ] ; then
+		sudo cp -v "${DIR}/git/linux-firmware/mt7601u.bin" "${tempdir}/lib/firmware/mt7601u.bin"
 	fi
 fi
 
@@ -973,41 +1007,37 @@ echo "Log: Complete: [sudo chroot ${tempdir} /bin/sh -e chroot_script.sh]"
 
 if [ ! "x${rfs_console_banner}" = "x" ] || [ ! "x${rfs_console_user_pass}" = "x" ] ; then
 	echo "Log: setting up: /etc/issue"
-	wfile="/tmp/issue"
-	cat "${tempdir}/etc/issue" > ${wfile}
+	wfile="${tempdir}/etc/issue"
 	if [ ! "x${rfs_etc_dogtag}" = "x" ] ; then
-		cat "${tempdir}/etc/dogtag" >> ${wfile}
-		echo "" >> ${wfile}
+		sudo sh -c "cat '${tempdir}/etc/dogtag' >> ${wfile}"
+		sudo sh -c "echo '' >> ${wfile}"
 	fi
 	if [ ! "x${rfs_console_banner}" = "x" ] ; then
-		echo "${rfs_console_banner}" >> ${wfile}
-		echo "" >> ${wfile}
+		sudo sh -c "echo '${rfs_console_banner}' >> ${wfile}"
+		sudo sh -c "echo '' >> ${wfile}"
 	fi
 	if [ ! "x${rfs_console_user_pass}" = "x" ] ; then
-		echo "default username:password is [${rfs_username}:${rfs_password}]" >> ${wfile}
-		echo "" >> ${wfile}
+		sudo sh -c "echo 'default username:password is [${rfs_username}:${rfs_password}]' >> ${wfile}"
+		sudo sh -c "echo '' >> ${wfile}"
 	fi
-	sudo mv ${wfile} "${tempdir}/etc/issue"
 fi
 
 if [ ! "x${rfs_ssh_banner}" = "x" ] || [ ! "x${rfs_ssh_user_pass}" = "x" ] ; then
 	echo "Log: setting up: /etc/issue.net"
-	wfile="/tmp/issue.net"
-	cat "${tempdir}/etc/issue.net" > ${wfile}
-	echo "" >> ${wfile}
+	wfile="${tempdir}/etc/issue.net"
+	sudo sh -c "echo '' >> ${wfile}"
 	if [ ! "x${rfs_etc_dogtag}" = "x" ] ; then
-		cat "${tempdir}/etc/dogtag" >> ${wfile}
-		echo "" >> ${wfile}
+		sudo sh -c "cat '${tempdir}/etc/dogtag' >> ${wfile}"
+		sudo sh -c "echo '' >> ${wfile}"
 	fi
 	if [ ! "x${rfs_ssh_banner}" = "x" ] ; then
-		echo "${rfs_ssh_banner}" >> ${wfile}
-		echo "" >> ${wfile}
+		sudo sh -c "echo '${rfs_ssh_banner}' >> ${wfile}"
+		sudo sh -c "echo '' >> ${wfile}"
 	fi
 	if [ ! "x${rfs_ssh_user_pass}" = "x" ] ; then
-		echo "default username:password is [${rfs_username}:${rfs_password}]" >> ${wfile}
-		echo "" >> ${wfile}
+		sudo sh -c "echo 'default username:password is [${rfs_username}:${rfs_password}]' >> ${wfile}"
+		sudo sh -c "echo '' >> ${wfile}"
 	fi
-	sudo mv ${wfile} "${tempdir}/etc/issue.net"
 fi
 
 #usually a qemu failure...
@@ -1087,6 +1117,9 @@ cat > "${DIR}/cleanup_script.sh" <<-__EOF__
 		if [ -d /var/cache/ti-c6000-cgt-v8.0.x-installer/ ] ; then
 			rm -rf /var/cache/ti-c6000-cgt-v8.0.x-installer/ || true
 		fi
+		if [ -d /var/cache/ti-c6000-cgt-v8.1.x-installer/ ] ; then
+			rm -rf /var/cache/ti-c6000-cgt-v8.1.x-installer/ || true
+		fi
 		if [ -d /var/cache/ti-pru-cgt-installer/ ] ; then
 			rm -rf /var/cache/ti-pru-cgt-installer/ || true
 		fi
@@ -1120,11 +1153,16 @@ if [ -d "${tempdir}/etc/kernel/postinst.d/" ] ; then
 	if [ ! -f "${tempdir}/etc/kernel/postinst.d/zz-uenv_txt" ] ; then
 		sudo cp -v "${OIB_DIR}/target/other/zz-uenv_txt" "${tempdir}/etc/kernel/postinst.d/"
 		sudo chmod +x "${tempdir}/etc/kernel/postinst.d/zz-uenv_txt"
+		sudo chown root:root "${tempdir}/etc/kernel/postinst.d/zz-uenv_txt"
 	fi
 fi
 
 if [ -f "${tempdir}/usr/bin/qemu-arm-static" ] ; then
 	sudo rm -f "${tempdir}/usr/bin/qemu-arm-static" || true
+fi
+
+if [ -f "${tempdir}/usr/bin/qemu-aarch64-static" ] ; then
+	sudo rm -f "${tempdir}/usr/bin/qemu-aarch64-static" || true
 fi
 
 echo "${rfs_username}:${rfs_password}" > /tmp/user_password.list
@@ -1140,6 +1178,7 @@ fi
 #ID.txt:
 if [ -f "${tempdir}/etc/dogtag" ] ; then
 	sudo cp "${tempdir}/etc/dogtag" "${DIR}/deploy/${export_filename}/ID.txt"
+	sudo chown root:root "${DIR}/deploy/${export_filename}/ID.txt"
 fi
 
 report_size
@@ -1175,10 +1214,10 @@ else
 	sudo LANG=C tar --numeric-owner -cf "${DIR}/deploy/${export_filename}/${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar" .
 	cd "${DIR}/" || true
 	ls -lh "${DIR}/deploy/${export_filename}/${deb_arch}-rootfs-${deb_distribution}-${deb_codename}.tar"
+	sudo chown -R ${USER}:${USER} "${DIR}/deploy/${export_filename}/"
 fi
 
 echo "Log: USER:${USER}"
-sudo chown -R ${USER}:${USER} "${DIR}/deploy/${export_filename}/"
 
 if [ "x${chroot_tarball}" = "xenable" ] ; then
 	echo "Creating: ${export_filename}.tar"

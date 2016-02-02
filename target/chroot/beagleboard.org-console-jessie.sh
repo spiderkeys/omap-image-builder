@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (c) 2014 Robert Nelson <robertcnelson@gmail.com>
+# Copyright (c) 2014-2016 Robert Nelson <robertcnelson@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 export LC_ALL=C
 
-u_boot_release="v2015.10"
+u_boot_release="v2016.01"
 u_boot_release_x15="v2015.07"
 #bone101_git_sha="50e01966e438ddc43b9177ad4e119e5274a0130d"
 
@@ -163,9 +163,7 @@ setup_desktop () {
 
 #	#Disable LXDE's screensaver on autostart
 #	if [ -f /etc/xdg/lxsession/LXDE/autostart ] ; then
-#		cat /etc/xdg/lxsession/LXDE/autostart | grep -v xscreensaver > /tmp/autostart
-#		mv /tmp/autostart /etc/xdg/lxsession/LXDE/autostart
-#		rm -rf /tmp/autostart || true
+#		sed -i '/xscreensaver/s/^/#/' /etc/xdg/lxsession/LXDE/autostart
 #	fi
 
 	#echo "CAPE=cape-bone-proto" >> /etc/default/capemgr
@@ -183,22 +181,31 @@ setup_desktop () {
 #		fi
 #	fi
 
-	#ti: firewall blocks pastebin.com
-	if [ -f /usr/bin/pastebinit ] ; then
-		wfile="/home/${rfs_username}/.pastebinit.xml"
-		echo "<pastebinit>" > ${wfile}
-		echo "    <pastebin>https://paste.debian.net</pastebin>" >> ${wfile}
-		echo "    <author>A pastebinit user</author>" >> ${wfile}
-		echo "    <jabberid>nobody@nowhere.org</jabberid>" >> ${wfile}
-		echo "    <format>text</format>" >> ${wfile}
-		echo "</pastebinit>" >> ${wfile}
-		chown ${rfs_username}:${rfs_username} ${wfile}
-	fi
-
 	#fix Ping:
 	#ping: icmp open socket: Operation not permitted
 	if [ -f /bin/ping ] ; then
 		chmod u+x /bin/ping
+	fi
+
+	if [ -d /etc/avahi/ ] ; then
+		#Annouce http server via DNS Sevice Discovery
+		wfile="/etc/avahi/services/http.service"
+		echo "<?xml version=\"1.0\" standalone='no'?><!--*-nxml-*-->" > ${wfile}
+		echo "<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">" >> ${wfile}
+		echo "" >> ${wfile}
+		echo "<!-- See avahi.service(5) for more information about this configuration file -->" >> ${wfile}
+		echo "" >> ${wfile}
+		echo "<service-group>" >> ${wfile}
+		echo "" >> ${wfile}
+		echo "  <name replace-wildcards=\"yes\">BeagleBone 101 Getting Started for %h</name>" >> ${wfile}
+		echo "  <service>" >> ${wfile}
+		echo "" >> ${wfile}
+		echo "    <type>_http._tcp</type>" >> ${wfile}
+		echo "    <port>80</port>" >> ${wfile}
+		echo "  </service>" >> ${wfile}
+		echo "" >> ${wfile}
+		echo "</service-group>" >> ${wfile}
+		chown -R root:root ${wfile}
 	fi
 }
 
@@ -218,20 +225,28 @@ install_gem_pkgs () {
 }
 
 install_pip_pkgs () {
-	if [ -f /usr/bin/pip ] ; then
-		echo "Installing pip packages"
-		#Fixed in git, however not pushed to pip yet...(use git and install)
-		#libpython2.7-dev
-		#pip install Adafruit_BBIO
+	if [ -f /usr/bin/python ] ; then
+		wget https://bootstrap.pypa.io/get-pip.py || true
+		if [ -f get-pip.py ] ; then
+			python get-pip.py
+			rm -f get-pip.py || true
 
-		git_repo="https://github.com/adafruit/adafruit-beaglebone-io-python.git"
-		git_target_dir="/opt/source/adafruit-beaglebone-io-python"
-		git_clone
-		if [ -f ${git_target_dir}/.git/config ] ; then
-			cd ${git_target_dir}/
-			python setup.py install
+			if [ -f /usr/local/bin/pip ] ; then
+				echo "Installing pip packages"
+				#Fixed in git, however not pushed to pip yet...(use git and install)
+				#libpython2.7-dev
+				#pip install Adafruit_BBIO
+
+				git_repo="https://github.com/adafruit/adafruit-beaglebone-io-python.git"
+				git_target_dir="/opt/source/adafruit-beaglebone-io-python"
+				git_clone
+				if [ -f ${git_target_dir}/.git/config ] ; then
+					cd ${git_target_dir}/
+					python setup.py install
+				fi
+				pip install --upgrade PyBBIO
+			fi
 		fi
-		pip install --upgrade PyBBIO
 	fi
 }
 
@@ -242,6 +257,10 @@ cleanup_npm_cache () {
 
 	if [ -d /root/.npm ] ; then
 		rm -rf /root/.npm || true
+	fi
+
+	if [ -f /home/${rfs_username}/.npmrc ] ; then
+		rm -f /home/${rfs_username}/.npmrc || true
 	fi
 }
 
@@ -302,6 +321,105 @@ install_node_pkgs () {
 			fi
 
 			systemctl enable cloud9.socket || true
+
+			if [ -d /etc/avahi/ ] ; then
+				#Annouce http server via DNS Sevice Discovery
+				wfile="/etc/avahi/services/cloud9.service"
+				echo "<?xml version=\"1.0\" standalone='no'?><!--*-nxml-*-->" > ${wfile}
+				echo "<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "<!-- See avahi.service(5) for more information about this configuration file -->" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "<service-group>" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "  <name replace-wildcards=\"yes\">Cloud9 IDE for %h</name>" >> ${wfile}
+				echo "  <service>" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "    <type>_http._tcp</type>" >> ${wfile}
+				echo "    <port>3000</port>" >> ${wfile}
+				echo "  </service>" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "</service-group>" >> ${wfile}
+				chown -R root:root ${wfile}
+			fi
+		fi
+
+		ver_nodered="0.13.1"
+
+		if [ -f /opt/scripts/mods/node-red/node-red-${ver_nodered}.patch ] && [ -f /usr/bin/make ] ; then
+
+			echo "Installing: [npm install -g systemd@0.2.6]"
+			TERM=dumb npm install -g systemd@0.2.6
+
+			echo "Installing: [npm install -g node-red@${ver_nodered}]"
+			TERM=dumb npm install -g node-red@${ver_nodered}
+
+			cd /usr/local/lib/node_modules/node-red
+			patch -p1 < /opt/scripts/mods/node-red/node-red-${ver_nodered}.patch
+			cd /opt/
+
+		#disable for now, it needs to be smarter about loading capes in 4.1.x
+		if [ "x0" = "x" ] ; then
+
+			mkdir -p /root/.node-red
+			cd /root/.node-red
+
+			echo "Installing: [npm install node-red-node-beaglebone]"
+			TERM=dumb npm install node-red-node-beaglebone
+
+			cd /opt/
+		fi
+
+			wfile="/lib/systemd/system/node-red.socket"
+			echo "[Socket]" > ${wfile}
+			echo "ListenStream=1880" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=sockets.target" >> ${wfile}
+
+			wfile="/lib/systemd/system/node-red.service"
+			echo "[Unit]" > ${wfile}
+			echo "Description=Start Node-RED" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Service]" >> ${wfile}
+			echo "Environment=HOME=/root" >> ${wfile}
+			echo "WorkingDirectory=/root" >> ${wfile}
+			echo "ExecStart=/usr/local/lib/node_modules/node-red/node-red.sh" >> ${wfile}
+			echo "SyslogIdentifier=Node-RED" >> ${wfile}
+			echo "RemainAfterExit=yes" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=multi-user.target" >> ${wfile}
+
+			wfile="/usr/local/lib/node_modules/node-red/node-red.sh"
+			echo "#!/bin/bash -" > ${wfile}
+			echo "export NODE_PATH=/usr/local/lib/node_modules" >> ${wfile}
+			echo "cd /usr/local/lib/node_modules/node-red/" >> ${wfile}
+			echo "/usr/bin/node --max-old-space-size=128 red.js" >> ${wfile}
+			chmod +x ${wfile}
+
+			systemctl enable node-red.socket || true
+
+			if [ -d /etc/avahi/ ] ; then
+				#Annouce http server via DNS Sevice Discovery
+				wfile="/etc/avahi/services/node-red.service"
+				echo "<?xml version=\"1.0\" standalone='no'?><!--*-nxml-*-->" > ${wfile}
+				echo "<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "<!-- See avahi.service(5) for more information about this configuration file -->" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "<service-group>" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "  <name replace-wildcards=\"yes\">Node-RED for %h</name>" >> ${wfile}
+				echo "  <service>" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "    <type>_http._tcp</type>" >> ${wfile}
+				echo "    <port>1880</port>" >> ${wfile}
+				echo "  </service>" >> ${wfile}
+				echo "" >> ${wfile}
+				echo "</service-group>" >> ${wfile}
+				chown -R root:root ${wfile}
+			fi
 		fi
 
 		cleanup_npm_cache
@@ -445,7 +563,7 @@ install_git_repos () {
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
 		if [ ! "x${repo_rcnee_pkg_version}" = "x" ] ; then
-			is_kernel=$(echo ${repo_rcnee_pkg_version} | grep 4.1)
+			is_kernel=$(echo ${repo_rcnee_pkg_version} | grep 4.1 || true)
 			if [ ! "x${is_kernel}" = "x" ] ; then
 				if [ -f /usr/bin/make ] ; then
 					./dtc-overlay.sh

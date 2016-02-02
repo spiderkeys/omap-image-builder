@@ -1,28 +1,22 @@
 #!/bin/bash -e
 
 time=$(date +%Y-%m-%d)
-mirror_dir="/home/builder/rootfs/bb.org/testing"
+mirror_dir="/var/www/html/rcn-ee.us/rootfs/bb.org/testing"
 DIR="$PWD"
-host=$(uname -n)
 
 git pull --no-edit https://github.com/beagleboard/image-builder master
 
-if [ "x${host}" = "xscw-69d6d5" ] ; then
-	hostip=$(sudo ip addr list eth0 |grep "inet " |cut -d' ' -f6|cut -d/ -f1 2>/dev/null || true)
-	export apt_proxy=${hostip}:3142/
-else
-	export apt_proxy=apt-proxy:3142/
-fi
+export apt_proxy=apt-proxy:3142/
 
 if [ -d ./deploy ] ; then
 	sudo rm -rf ./deploy || true
 fi
 
-./RootStock-NG.sh -c machinekit-debian-wheezy
-./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-2gb-v4.1
-./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-4gb-v4.1
+#./RootStock-NG.sh -c machinekit-debian-wheezy
+#./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-2gb-v4.1
+#./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-4gb-v4.1
 ./RootStock-NG.sh -c bb.org-debian-jessie-console-v4.1
-./RootStock-NG.sh -c bb.org-debian-jessie-usbflasher
+#./RootStock-NG.sh -c bb.org-debian-jessie-usbflasher
 
 debian_wheezy_machinekit="debian-7.9-machinekit-armhf-${time}"
 debian_jessie_lxqt_2gb="debian-8.3-lxqt-2gb-armhf-${time}"
@@ -85,7 +79,9 @@ extract_base_rootfs () {
 
         if [ -f \${base_rootfs}.tar.xz ] ; then
                 tar xf \${base_rootfs}.tar.xz
-        else
+        fi
+
+        if [ -f \${base_rootfs}.tar ] ; then
                 tar xf \${base_rootfs}.tar
         fi
 }
@@ -124,11 +120,13 @@ archive_img () {
 }
 
 generate_img () {
-        cd \${base_rootfs}/
-        sudo ./setup_sdcard.sh \${options}
-        mv *.img ../
-        mv *.job.txt ../
-        cd ..
+        if [ -d \${base_rootfs}/ ] ; then
+                cd \${base_rootfs}/
+                sudo ./setup_sdcard.sh \${options}
+                mv *.img ../
+                mv *.job.txt ../
+                cd ..
+        fi
 }
 
 ###machinekit:
@@ -154,14 +152,16 @@ options="--img-2gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --bbb-flasher"
 ###console images: (also single partition)
 base_rootfs="${debian_jessie_console}" ; blend="console" ; extract_base_rootfs
 
-options="--img-2gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone_console} --emmc-flasher" ; generate_img
-options="--img-2gb bone-\${base_rootfs} ${beaglebone_console}" ; generate_img
-options="--img-2gb bbx15-eMMC-flasher-\${base_rootfs} ${am57xx_beagle_x15} --emmc-flasher" ; generate_img
-options="--img-2gb bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
-options="--img-2gb omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
+options="--img-2gb a335-eeprom-\${base_rootfs} ${bb_blank_flasher_console} --a335-flasher" ; generate_img
+#options="--img-2gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone_console} --emmc-flasher" ; generate_img
+#options="--img-2gb bone-\${base_rootfs} ${beaglebone_console}" ; generate_img
+#options="--img-2gb bbx15-eMMC-flasher-\${base_rootfs} ${am57xx_beagle_x15} --emmc-flasher" ; generate_img
+#options="--img-2gb bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
+#options="--img-2gb omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
 
 ###usbflasher images: (also single partition)
 base_rootfs="${debian_jessie_usbflasher}" ; blend="usbflasher" ; extract_base_rootfs
+
 options="--img-2gb BBB-blank-\${base_rootfs} --dtb bbb-blank-eeprom --bbb-old-bootloader-in-emmc --hostname beaglebone --usb-flasher" ; generate_img
 options="--img-2gb bbx15-\${base_rootfs} --dtb am57xx-beagle-x15 --hostname BeagleBoard-X15 --usb-flasher" ; generate_img
 
@@ -173,33 +173,54 @@ base_rootfs="${debian_jessie_console}" ; blend="console" ; archive_base_rootfs
 base_rootfs="${debian_jessie_usbflasher}" ; blend="usbflasher" ; archive_base_rootfs
 
 ###archive *.img
-blend="machinekit"
-wfile="bone-${debian_wheezy_machinekit}-4gb" ; archive_img
+base_rootfs="${debian_wheezy_machinekit}" ; blend="machinekit"
 
-blend="lxqt-4gb"
-wfile="BBB-eMMC-flasher-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
-wfile="bone-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
-wfile="bbx15-eMMC-flasher-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
-wfile="bbx15-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
-wfile="omap5-uevm-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
-wfile="tre-${debian_jessie_lxqt_4gb}-4gb" ; archive_img
+wfile="bone-\${base_rootfs}-4gb" ; archive_img
 
-blend="lxqt-2gb"
-wfile="BBB-eMMC-flasher-${debian_jessie_lxqt_2gb}-2gb" ; archive_img
+#
+base_rootfs="${debian_jessie_lxqt_4gb}" ; blend="lxqt-4gb"
 
-blend="console"
-wfile="BBB-eMMC-flasher-${debian_jessie_console}-2gb" ; archive_img
-wfile="bone-${debian_jessie_console}-2gb" ; archive_img
-wfile="bbx15-eMMC-flasher-${debian_jessie_console}-2gb" ; archive_img
-wfile="bbx15-${debian_jessie_console}-2gb" ; archive_img
-wfile="omap5-uevm-${debian_jessie_console}-2gb" ; archive_img
+wfile="BBB-eMMC-flasher-\${base_rootfs}-4gb" ; archive_img
+wfile="bone-\${base_rootfs}-4gb" ; archive_img
+wfile="bbx15-eMMC-flasher-\${base_rootfs}-4gb" ; archive_img
+wfile="bbx15-\${base_rootfs}-4gb" ; archive_img
+wfile="omap5-uevm-\${base_rootfs}-4gb" ; archive_img
+wfile="tre-\${base_rootfs}-4gb" ; archive_img
 
-blend="usbflasher"
-wfile="BBB-blank-${debian_jessie_usbflasher}-2gb" ; archive_img
-wfile="bbx15-${debian_jessie_usbflasher}-2gb" ; archive_img
+#
+base_rootfs="${debian_jessie_lxqt_2gb}" ; blend="lxqt-2gb"
+
+wfile="BBB-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
+
+#
+base_rootfs="${debian_jessie_console}" ; blend="console"
+
+wfile="a335-eeprom-\${base_rootfs}-2gb" ; archive_img
+wfile="BBB-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
+wfile="bone-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-\${base_rootfs}-2gb" ; archive_img
+wfile="omap5-uevm-\${base_rootfs}-2gb" ; archive_img
+
+#
+base_rootfs="${debian_jessie_usbflasher}" ; blend="usbflasher"
+
+wfile="BBB-blank-\${base_rootfs}-2gb" ; archive_img
+wfile="bbx15-\${base_rootfs}-2gb" ; archive_img
 
 __EOF__
 
 chmod +x ${DIR}/deploy/gift_wrap_final_images.sh
 
+if [ ! -d /mnt/farm/images/ ] ; then
+	#nfs mount...
+	sudo mount -a
+fi
+
+if [ -d /mnt/farm/images/ ] ; then
+	mkdir /mnt/farm/images/${time}/
+	cp -v ${DIR}/deploy/*.tar /mnt/farm/images/${time}/
+	cp -v ${DIR}/deploy/gift_wrap_final_images.sh /mnt/farm/images/${time}/gift_wrap_final_images.sh
+	chmod +x /mnt/farm/images/${time}/gift_wrap_final_images.sh
+fi
 
