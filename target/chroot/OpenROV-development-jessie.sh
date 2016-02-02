@@ -135,10 +135,11 @@ install_node_pkgs () {
 		npm config set user 0
 		npm config set userconfig /root/.npmrc
 
-		if [ -f /usr/bin/make ] ; then
-			echo "Installing: [npm install -g bonescript@0.2.5]"
-			TERM=dumb npm install -g bonescript@0.2.5
-		fi
+		#disabling until bonscript is fixed for new node
+		#if [ -f /usr/bin/make ] ; then
+		#	echo "Installing: [npm install -g bonescript]"
+		#	TERM=dumb npm install -g bonescript
+		#fi
 
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
