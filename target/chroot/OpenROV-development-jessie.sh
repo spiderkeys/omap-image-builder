@@ -176,7 +176,7 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dumb npm install
+			TERM=dumb npm install --production
 			TERM=dumb npm run-script bower
 			wfile="/lib/systemd/system/orov-dashboard.socket"
 			echo "[Socket]" > ${wfile}
@@ -205,9 +205,9 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dumb npm install
+			TERM=dumb npm install --production
 			cd proxy-via-browser
-			TERM=dumb npm install
+			TERM=dumb npm install --production
 			cd ${git_target_dir}/
 			ln -s /opt/openrov/openrov-proxy/proxy-via-browser/ /opt/openrov/proxy
 			bash install_lib/openrov-proxy-afterinstall.sh
