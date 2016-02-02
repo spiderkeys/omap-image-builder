@@ -148,7 +148,8 @@ install_node_pkgs () {
 			cd ${git_target_dir}/
 			TERM=dumb npm install
 			cd src/static
-			TERM=dumb npm install
+			#TODO: Figure out why the dev dependncie phatomjs wont install on Arm
+			TERM=dumb npm install --production
 			TERM=dumb npm run bower
 			cd ../..
 
