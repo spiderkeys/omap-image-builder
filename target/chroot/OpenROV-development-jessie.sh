@@ -146,13 +146,7 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dumb npm install
-			cd src/static
-			#TODO: Figure out why the dev dependncie phatomjs wont install on Arm
 			TERM=dumb npm install --production
-			TERM=dumb npm run bower
-			cd ../..
-
 
 			wfile="/lib/systemd/system/orov-cockpit.socket"
 			echo "[Socket]" > ${wfile}
