@@ -101,6 +101,9 @@ cleanup_npm_cache () {
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
 		cd /
+		echo "Upgrading NPM"
+		# https://github.com/rcn-ee/repos/issues/5#issuecomment-181610810
+		npm install npm -g
 		echo "Installing npm packages"
 		echo "debug: node: [`node --version`]"
 		echo "debug: npm: [`npm --version`]"
@@ -146,7 +149,7 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dumb npm install --production
+			TERM=dumb npm install --production --unsafe-perm
 
 			wfile="/lib/systemd/system/orov-cockpit.socket"
 			echo "[Socket]" > ${wfile}
@@ -176,7 +179,7 @@ install_node_pkgs () {
 		git_clone_full
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
-			TERM=dumb npm install --production
+			TERM=dumb npm install --production --unsafe-perm
 			TERM=dumb npm run-script bower
 			wfile="/lib/systemd/system/orov-dashboard.socket"
 			echo "[Socket]" > ${wfile}
