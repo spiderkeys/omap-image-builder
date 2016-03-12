@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (c) 2012-2015 Robert Nelson <robertcnelson@gmail.com>
+# Copyright (c) 2012-2016 Robert Nelson <robertcnelson@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ check_defines () {
 	case "${deb_distribution}" in
 	debian)
 		deb_components=${deb_components:-"main contrib non-free"}
-		deb_mirror=${deb_mirror:-"ftp.us.debian.org/debian/"}
+		deb_mirror=${deb_mirror:-"httpredir.debian.org/debian/"}
 		;;
 	ubuntu)
 		deb_components=${deb_components:-"main universe multiverse"}
@@ -324,6 +324,10 @@ if [ "x${deb_distribution}" = "xdebian" ] ; then
 	#apt: make sure apt-cacher-ng doesn't break oracle-java8-installer
 	echo 'Acquire::http::Proxy::download.oracle.com "DIRECT";' > /tmp/03-proxy-oracle
 	sudo mv /tmp/03-proxy-oracle "${tempdir}/etc/apt/apt.conf.d/03-proxy-oracle"
+
+	#apt: make sure apt-cacher-ng doesn't break https repos
+	echo 'Acquire::http::Proxy::deb.nodesource.com "DIRECT";' > /tmp/03-proxy-https
+	sudo mv /tmp/03-proxy-https "${tempdir}/etc/apt/apt.conf.d/03-proxy-https"
 fi
 
 #set initial 'seed' time...
@@ -352,11 +356,11 @@ wheezy|jessie)
 	echo "#deb-src http://security.debian.org/ ${deb_codename}/updates ${deb_components}" >> ${wfile}
 	echo "" >> ${wfile}
 	if [ "x${chroot_enable_debian_backports}" = "xenable" ] ; then
-		echo "deb http://ftp.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
-		echo "#deb-src http://ftp.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
+		echo "deb http://httpredir.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
+		echo "#deb-src http://httpredir.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
 	else
-		echo "#deb http://ftp.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
-		echo "##deb-src http://ftp.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
+		echo "#deb http://httpredir.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
+		echo "##deb-src http://httpredir.debian.org/debian ${deb_codename}-backports ${deb_components}" >> ${wfile}
 	fi
 	;;
 stretch)
@@ -371,6 +375,14 @@ if [ "x${repo_external}" = "xenable" ] ; then
 	echo "" >> ${wfile}
 	echo "deb [arch=${repo_external_arch}] ${repo_external_server} ${repo_external_dist} ${repo_external_components}" >> ${wfile}
 	echo "#deb-src [arch=${repo_external_arch}] ${repo_external_server} ${repo_external_dist} ${repo_external_components}" >> ${wfile}
+fi
+
+if [ ! "x${repo_nodesource}" = "x" ] ; then
+	echo "" >> ${wfile}
+	echo "deb https://deb.nodesource.com/${repo_nodesource} ${deb_codename} main" >> ${wfile}
+	echo "#deb-src https://deb.nodesource.com/${repo_nodesource} ${deb_codename} main" >> ${wfile}
+	echo "" >> ${wfile}
+	sudo cp -v "${OIB_DIR}/target/keyring/nodesource.gpg.key" "${tempdir}/tmp/nodesource.gpg.key"
 fi
 
 if [ "x${repo_rcnee}" = "xenable" ] ; then
@@ -553,6 +565,10 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 	}
 
 	install_pkg_updates () {
+		if [ -f /tmp/nodesource.gpg.key ] ; then
+			apt-key add /tmp/nodesource.gpg.key
+			rm -f /tmp/nodesource.gpg.key || true
+		fi
 		if [ "x${repo_rcnee}" = "xenable" ] ; then
 			apt-key add /tmp/repos.rcn-ee.net-archive-keyring.asc
 			rm -f /tmp/repos.rcn-ee.net-archive-keyring.asc || true
@@ -601,6 +617,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 		if [ ! "x${repo_rcnee_pkg_version}" = "x" ] ; then
 			echo "Log: (chroot) Installing modules for: ${repo_rcnee_pkg_version}"
 			apt-get -y --force-yes install mt7601u-modules-${repo_rcnee_pkg_version} || true
+			apt-get -y --force-yes install rtl8723bu-modules-${repo_rcnee_pkg_version} || true
 			depmod -a ${repo_rcnee_pkg_version}
 			update-initramfs -u -k ${repo_rcnee_pkg_version}
 		fi

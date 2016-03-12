@@ -1212,11 +1212,7 @@ populate_rootfs () {
 
 		echo "" >> ${wfile}
 
-		echo "# WiFi Example" >> ${wfile}
-		echo "#auto wlan0" >> ${wfile}
-		echo "#iface wlan0 inet dhcp" >> ${wfile}
-		echo "#    wpa-ssid \"essid\"" >> ${wfile}
-		echo "#    wpa-psk  \"password\"" >> ${wfile}
+		echo "# WiFi use: -> connmanctl" >> ${wfile}
 
 		echo "" >> ${wfile}
 

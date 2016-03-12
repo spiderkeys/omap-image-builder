@@ -292,16 +292,6 @@ install_node_pkgs () {
 
 		cd /opt/
 
-		#cloud9 installed by cloud9-installer
-		if [ -d /opt/cloud9/build/standalonebuild ] ; then
-			if [ -f /usr/bin/make ] ; then
-				echo "Installing winston"
-				TERM=dumb npm install -g winston --arch=armhf
-			fi
-
-			systemctl enable cloud9.socket || true
-		fi
-
 		cleanup_npm_cache
 		sync
 
@@ -421,20 +411,23 @@ install_git_repos () {
 #		cd /
 #	fi
 
-#	git_repo="https://github.com/biocode3D/prufh.git"
-#	git_target_dir="/opt/source/prufh"
-#	git_clone
-#	if [ -f ${git_target_dir}/.git/config ] ; then
-#		cd ${git_target_dir}/
-#		if [ -f /usr/bin/make ] ; then
-#			make LIBDIR_APP_LOADER=/usr/lib/ INCDIR_APP_LOADER=/usr/include
+	#am335x-pru-package
+#	if [ -f /usr/include/prussdrv.h ] ; then
+#		git_repo="https://github.com/biocode3D/prufh.git"
+#		git_target_dir="/opt/source/prufh"
+#		git_clone
+#		if [ -f ${git_target_dir}/.git/config ] ; then
+#			cd ${git_target_dir}/
+#			if [ -f /usr/bin/make ] ; then
+#				make LIBDIR_APP_LOADER=/usr/lib/ INCDIR_APP_LOADER=/usr/include
+#			fi
+#			cd /
 #		fi
-#		cd /
+#
+#		git_repo="git://git.ti.com/pru-software-support-package/pru-software-support-package.git"
+#		git_target_dir="/opt/source/pru-software-support-package"
+#		git_clone
 #	fi
-
-#	git_repo="git://git.ti.com/pru-software-support-package/pru-software-support-package.git"
-#	git_target_dir="/opt/source/pru-software-support-package"
-#	git_clone
 }
 
 install_build_pkgs () {

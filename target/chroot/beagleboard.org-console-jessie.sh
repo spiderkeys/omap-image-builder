@@ -92,14 +92,9 @@ setup_system () {
 		fi
 	fi
 
-	if [ -f /lib/systemd/system/serial-getty@.service ] ; then
-		cp /lib/systemd/system/serial-getty@.service /etc/systemd/system/serial-getty@ttyGS0.service
-		ln -s /etc/systemd/system/serial-getty@ttyGS0.service /etc/systemd/system/getty.target.wants/serial-getty@ttyGS0.service
-
-		echo "" >> /etc/securetty
-		echo "#USB Gadget Serial Port" >> /etc/securetty
-		echo "ttyGS0" >> /etc/securetty
-	fi
+	echo "" >> /etc/securetty
+	echo "#USB Gadget Serial Port" >> /etc/securetty
+	echo "ttyGS0" >> /etc/securetty
 }
 
 setup_desktop () {
@@ -138,9 +133,9 @@ setup_desktop () {
 		echo "Patching: ${wfile}"
 		sed -i -e 's:#autologin-user=:autologin-user='$rfs_username':g' ${wfile}
 		sed -i -e 's:#autologin-session=UNIMPLEMENTED:autologin-session='$rfs_default_desktop':g' ${wfile}
-#		if [ -f /opt/scripts/3rdparty/xinput_calibrator_pointercal.sh ] ; then
-#			sed -i -e 's:#display-setup-script=:display-setup-script=/opt/scripts/3rdparty/xinput_calibrator_pointercal.sh:g' ${wfile}
-#		fi
+		if [ -f /opt/scripts/3rdparty/xinput_calibrator_pointercal.sh ] ; then
+			sed -i -e 's:#display-setup-script=:display-setup-script=/opt/scripts/3rdparty/xinput_calibrator_pointercal.sh:g' ${wfile}
+		fi
 	fi
 
 	if [ ! "x${rfs_desktop_background}" = "x" ] ; then
@@ -187,25 +182,38 @@ setup_desktop () {
 		chmod u+x /bin/ping
 	fi
 
-	if [ -d /etc/avahi/ ] ; then
-		#Annouce http server via DNS Sevice Discovery
-		wfile="/etc/avahi/services/http.service"
-		echo "<?xml version=\"1.0\" standalone='no'?><!--*-nxml-*-->" > ${wfile}
-		echo "<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">" >> ${wfile}
+	if [ -f /etc/init.d/connman ] ; then
+		mkdir -p /etc/connman/ || true
+		wfile="/etc/connman/main.conf"
+		echo "[General]" > ${wfile}
+		echo "PreferredTechnologies=ethernet,wifi" >> ${wfile}
+		echo "SingleConnectedTechnology=false" >> ${wfile}
+		echo "AllowHostnameUpdates=false" >> ${wfile}
+		echo "PersistentTetheringMode=true" >> ${wfile}
+		echo "NetworkInterfaceBlacklist=usb0" >> ${wfile}
+
+		mkdir -p /var/lib/connman/ || true
+		wfile="/var/lib/connman/settings"
+		echo "[global]" > ${wfile}
+		echo "OfflineMode=false" >> ${wfile}
 		echo "" >> ${wfile}
-		echo "<!-- See avahi.service(5) for more information about this configuration file -->" >> ${wfile}
+		echo "[Wired]" >> ${wfile}
+		echo "Enable=true" >> ${wfile}
+		echo "Tethering=false" >> ${wfile}
 		echo "" >> ${wfile}
-		echo "<service-group>" >> ${wfile}
+		echo "[WiFi]" >> ${wfile}
+		echo "Enable=true" >> ${wfile}
+		echo "Tethering=true" >> ${wfile}
+		echo "Tethering.Identifier=BeagleBone" >> ${wfile}
+		echo "Tethering.Passphrase=BeagleBone" >> ${wfile}
 		echo "" >> ${wfile}
-		echo "  <name replace-wildcards=\"yes\">BeagleBone 101 Getting Started for %h</name>" >> ${wfile}
-		echo "  <service>" >> ${wfile}
+		echo "[Gadget]" >> ${wfile}
+		echo "Enable=false" >> ${wfile}
+		echo "Tethering=false" >> ${wfile}
 		echo "" >> ${wfile}
-		echo "    <type>_http._tcp</type>" >> ${wfile}
-		echo "    <port>80</port>" >> ${wfile}
-		echo "  </service>" >> ${wfile}
-		echo "" >> ${wfile}
-		echo "</service-group>" >> ${wfile}
-		chown -R root:root ${wfile}
+		echo "[P2P]" >> ${wfile}
+		echo "Enable=false" >> ${wfile}
+		echo "Tethering=false" >> ${wfile}
 	fi
 }
 
@@ -245,6 +253,7 @@ install_pip_pkgs () {
 					python setup.py install
 				fi
 				pip install --upgrade PyBBIO
+				pip install iw_parse
 			fi
 		fi
 	fi
@@ -268,161 +277,49 @@ install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
 		cd /
 		echo "Installing npm packages"
-		echo "debug: node: [`node --version`]"
-		echo "debug: npm: [`npm --version`]"
+		echo "debug: node: [`nodejs --version`]"
 
-		echo "NODE_PATH=/usr/local/lib/node_modules" > /etc/default/node
-		echo "export NODE_PATH=/usr/local/lib/node_modules" > /etc/profile.d/node.sh
-		chmod 755 /etc/profile.d/node.sh
+		if [ -f /usr/local/bin/npm ] ; then
+			npm_bin="/usr/local/bin/npm"
+		else
+			npm_bin="/usr/bin/npm"
+		fi
+
+		echo "debug: npm: [`${npm_bin} --version`]"
 
 		#debug
 		#echo "debug: npm config ls -l (before)"
 		#echo "--------------------------------"
-		#npm config ls -l
+		#${npm_bin} config ls -l
 		#echo "--------------------------------"
 
 		#c9-core-installer...
-		npm config delete cache
-		npm config delete tmp
-		npm config delete python
+		${npm_bin} config delete cache
+		${npm_bin} config delete tmp
+		${npm_bin} config delete python
 
 		#fix npm in chroot.. (did i mention i hate npm...)
 		if [ ! -d /root/.npm ] ; then
 			mkdir -p /root/.npm
 		fi
-		npm config set cache /root/.npm
-		npm config set group 0
-		npm config set init-module /root/.npm-init.js
+		${npm_bin} config set cache /root/.npm
+		${npm_bin} config set group 0
+		${npm_bin} config set init-module /root/.npm-init.js
 
 		if [ ! -d /root/tmp ] ; then
 			mkdir -p /root/tmp
 		fi
-		npm config set tmp /root/tmp
-		npm config set user 0
-		npm config set userconfig /root/.npmrc
+		${npm_bin} config set tmp /root/tmp
+		${npm_bin} config set user 0
+		${npm_bin} config set userconfig /root/.npmrc
 
-		#echo "debug: npm config ls -l (after)"
+		${npm_bin} config set prefix /usr/local/
+
+		#echo "debug: npm configuration"
 		#echo "--------------------------------"
-		#npm config ls -l
+		#${npm_bin} config ls -l
 		#echo "--------------------------------"
 
-		if [ -f /usr/bin/make ] ; then
-			echo "Installing: [npm install -g bonescript@0.2.5]"
-			TERM=dumb npm install -g bonescript@0.2.5
-		fi
-
-		cd /opt/
-
-		#cloud9 installed by cloud9-installer
-		if [ -d /opt/cloud9/build/standalonebuild ] ; then
-			if [ -f /usr/bin/make ] ; then
-				echo "Installing winston"
-				TERM=dumb npm install -g winston --arch=armhf
-			fi
-
-			systemctl enable cloud9.socket || true
-
-			if [ -d /etc/avahi/ ] ; then
-				#Annouce http server via DNS Sevice Discovery
-				wfile="/etc/avahi/services/cloud9.service"
-				echo "<?xml version=\"1.0\" standalone='no'?><!--*-nxml-*-->" > ${wfile}
-				echo "<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "<!-- See avahi.service(5) for more information about this configuration file -->" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "<service-group>" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "  <name replace-wildcards=\"yes\">Cloud9 IDE for %h</name>" >> ${wfile}
-				echo "  <service>" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "    <type>_http._tcp</type>" >> ${wfile}
-				echo "    <port>3000</port>" >> ${wfile}
-				echo "  </service>" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "</service-group>" >> ${wfile}
-				chown -R root:root ${wfile}
-			fi
-		fi
-
-		ver_nodered="0.13.1"
-
-		if [ -f /opt/scripts/mods/node-red/node-red-${ver_nodered}.patch ] && [ -f /usr/bin/make ] ; then
-
-			echo "Installing: [npm install -g systemd@0.2.6]"
-			TERM=dumb npm install -g systemd@0.2.6
-
-			echo "Installing: [npm install -g node-red@${ver_nodered}]"
-			TERM=dumb npm install -g node-red@${ver_nodered}
-
-			cd /usr/local/lib/node_modules/node-red
-			patch -p1 < /opt/scripts/mods/node-red/node-red-${ver_nodered}.patch
-			cd /opt/
-
-		#disable for now, it needs to be smarter about loading capes in 4.1.x
-		if [ "x0" = "x" ] ; then
-
-			mkdir -p /root/.node-red
-			cd /root/.node-red
-
-			echo "Installing: [npm install node-red-node-beaglebone]"
-			TERM=dumb npm install node-red-node-beaglebone
-
-			cd /opt/
-		fi
-
-			wfile="/lib/systemd/system/node-red.socket"
-			echo "[Socket]" > ${wfile}
-			echo "ListenStream=1880" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=sockets.target" >> ${wfile}
-
-			wfile="/lib/systemd/system/node-red.service"
-			echo "[Unit]" > ${wfile}
-			echo "Description=Start Node-RED" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Service]" >> ${wfile}
-			echo "Environment=HOME=/root" >> ${wfile}
-			echo "WorkingDirectory=/root" >> ${wfile}
-			echo "ExecStart=/usr/local/lib/node_modules/node-red/node-red.sh" >> ${wfile}
-			echo "SyslogIdentifier=Node-RED" >> ${wfile}
-			echo "RemainAfterExit=yes" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=multi-user.target" >> ${wfile}
-
-			wfile="/usr/local/lib/node_modules/node-red/node-red.sh"
-			echo "#!/bin/bash -" > ${wfile}
-			echo "export NODE_PATH=/usr/local/lib/node_modules" >> ${wfile}
-			echo "cd /usr/local/lib/node_modules/node-red/" >> ${wfile}
-			echo "/usr/bin/node --max-old-space-size=128 red.js" >> ${wfile}
-			chmod +x ${wfile}
-
-			systemctl enable node-red.socket || true
-
-			if [ -d /etc/avahi/ ] ; then
-				#Annouce http server via DNS Sevice Discovery
-				wfile="/etc/avahi/services/node-red.service"
-				echo "<?xml version=\"1.0\" standalone='no'?><!--*-nxml-*-->" > ${wfile}
-				echo "<!DOCTYPE service-group SYSTEM \"avahi-service.dtd\">" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "<!-- See avahi.service(5) for more information about this configuration file -->" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "<service-group>" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "  <name replace-wildcards=\"yes\">Node-RED for %h</name>" >> ${wfile}
-				echo "  <service>" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "    <type>_http._tcp</type>" >> ${wfile}
-				echo "    <port>1880</port>" >> ${wfile}
-				echo "  </service>" >> ${wfile}
-				echo "" >> ${wfile}
-				echo "</service-group>" >> ${wfile}
-				chown -R root:root ${wfile}
-			fi
-		fi
-
-		cleanup_npm_cache
 		sync
 
 		if [ -f /usr/local/bin/jekyll ] ; then
@@ -461,40 +358,6 @@ install_node_pkgs () {
 			echo "WantedBy=multi-user.target" >> ${wfile}
 
 			systemctl enable jekyll-autorun.service || true
-
-			wfile="/lib/systemd/system/bonescript.socket"
-			echo "[Socket]" > ${wfile}
-			echo "ListenStream=80" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=sockets.target" >> ${wfile}
-
-			wfile="/lib/systemd/system/bonescript.service"
-			echo "[Unit]" > ${wfile}
-			echo "Description=Bonescript server" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Service]" >> ${wfile}
-			echo "WorkingDirectory=/usr/local/lib/node_modules/bonescript" >> ${wfile}
-			echo "ExecStart=/usr/bin/node server.js" >> ${wfile}
-			echo "SyslogIdentifier=bonescript" >> ${wfile}
-
-			systemctl enable bonescript.socket || true
-
-			wfile="/lib/systemd/system/bonescript-autorun.service"
-			echo "[Unit]" > ${wfile}
-			echo "Description=Bonescript autorun" >> ${wfile}
-			echo "ConditionPathExists=|/var/lib/cloud9" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Service]" >> ${wfile}
-			echo "WorkingDirectory=/usr/local/lib/node_modules/bonescript" >> ${wfile}
-			echo "EnvironmentFile=/etc/default/node" >> ${wfile}
-			echo "ExecStart=/usr/bin/node autorun.js" >> ${wfile}
-			echo "SyslogIdentifier=bonescript-autorun" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=multi-user.target" >> ${wfile}
-
-			systemctl enable bonescript-autorun.service || true
 
 			if [ -d /etc/apache2/ ] ; then
 				#bone101 takes over port 80, so shove apache/etc to 8080:
@@ -541,15 +404,18 @@ install_git_repos () {
 		cd /
 	fi
 
-	git_repo="https://github.com/biocode3D/prufh.git"
-	git_target_dir="/opt/source/prufh"
-	git_clone
-	if [ -f ${git_target_dir}/.git/config ] ; then
-		cd ${git_target_dir}/
-		if [ -f /usr/bin/make ] ; then
-			make LIBDIR_APP_LOADER=/usr/lib/ INCDIR_APP_LOADER=/usr/include
+	#am335x-pru-package
+	if [ -f /usr/include/prussdrv.h ] ; then
+		git_repo="https://github.com/biocode3D/prufh.git"
+		git_target_dir="/opt/source/prufh"
+		git_clone
+		if [ -f ${git_target_dir}/.git/config ] ; then
+			cd ${git_target_dir}/
+			if [ -f /usr/bin/make ] ; then
+				make LIBDIR_APP_LOADER=/usr/lib/ INCDIR_APP_LOADER=/usr/include
+			fi
+			cd /
 		fi
-		cd /
 	fi
 
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
@@ -566,11 +432,9 @@ install_git_repos () {
 			is_kernel=$(echo ${repo_rcnee_pkg_version} | grep 4.1 || true)
 			if [ ! "x${is_kernel}" = "x" ] ; then
 				if [ -f /usr/bin/make ] ; then
-					./dtc-overlay.sh
 					make
 					make install
 					update-initramfs -u -k ${repo_rcnee_pkg_version}
-					rm -rf /home/${rfs_username}/git/ || true
 					make clean
 				fi
 			fi
@@ -578,9 +442,12 @@ install_git_repos () {
 		cd /
 	fi
 
-	git_repo="git://git.ti.com/pru-software-support-package/pru-software-support-package.git"
-	git_target_dir="/opt/source/pru-software-support-package"
-	git_clone
+	#am335x-pru-package
+	if [ -f /usr/include/prussdrv.h ] ; then
+		git_repo="git://git.ti.com/pru-software-support-package/pru-software-support-package.git"
+		git_target_dir="/opt/source/pru-software-support-package"
+		git_clone
+	fi
 }
 
 install_build_pkgs () {

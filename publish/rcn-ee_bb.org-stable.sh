@@ -15,6 +15,7 @@ fi
 ./RootStock-NG.sh -c machinekit-debian-wheezy
 ./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-2gb-v4.1
 ./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-4gb-v4.1
+./RootStock-NG.sh -c bb.org-debian-jessie-iot-v4.1.conf
 ./RootStock-NG.sh -c bb.org-debian-jessie-console-v4.1
 ./RootStock-NG.sh -c bb.org-debian-jessie-usbflasher
 #./RootStock-NG.sh -c bb.org-debian-jessie-lxqt-4gb-nodejs-4.2.x-v4.1
@@ -22,6 +23,7 @@ fi
 debian_wheezy_machinekit="debian-7.9-machinekit-armhf-${time}"
 debian_jessie_lxqt_2gb="debian-8.3-lxqt-2gb-armhf-${time}"
 debian_jessie_lxqt_4gb="debian-8.3-lxqt-4gb-armhf-${time}"
+debian_jessie_iot="debian-8.3-iot-armhf-${time}"
 debian_jessie_console="debian-8.3-console-armhf-${time}"
 debian_jessie_usbflasher="debian-8.3-usbflasher-armhf-${time}"
 debian_jessie_lxqt_4gb_nodejs="debian-8.3-lxqt-4gb-nodejs-4.2.x-armhf-${time}"
@@ -138,13 +140,19 @@ options="--img-4gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --emmc-flasher
 options="--img-4gb bone-\${base_rootfs} ${beaglebone}" ; generate_img
 options="--img-4gb bbx15-eMMC-flasher-\${base_rootfs} ${am57xx_beagle_x15} --emmc-flasher" ; generate_img
 options="--img-4gb bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
-options="--img-4gb omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
-options="--img-4gb tre-\${base_rootfs} ${arduino_tre}" ; generate_img
+#options="--img-4gb omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
+#options="--img-4gb tre-\${base_rootfs} ${arduino_tre}" ; generate_img
 
 ###lxqt-2gb image
 base_rootfs="${debian_jessie_lxqt_2gb}" ; blend="lxqt-2gb" ; extract_base_rootfs
 
 options="--img-2gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --bbb-flasher" ; generate_img
+
+###iot image
+base_rootfs="${debian_jessie_iot}" ; blend="iot" ; extract_base_rootfs
+
+options="--img-4gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --bbb-flasher" ; generate_img
+options="--img-4gb bone-\${base_rootfs} ${beaglebone}" ; generate_img
 
 ###console images: (also single partition)
 base_rootfs="${debian_jessie_console}" ; blend="console" ; extract_base_rootfs
@@ -154,7 +162,7 @@ options="--img-2gb BBB-eMMC-flasher-\${base_rootfs} ${beaglebone} --emmc-flasher
 options="--img-2gb bone-\${base_rootfs} ${beaglebone}" ; generate_img
 options="--img-2gb bbx15-eMMC-flasher-\${base_rootfs} ${am57xx_beagle_x15} --emmc-flasher" ; generate_img
 options="--img-2gb bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
-options="--img-2gb omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
+#options="--img-2gb omap5-uevm-\${base_rootfs} ${omap5_uevm}" ; generate_img
 
 ###usbflasher images: (also single partition)
 base_rootfs="${debian_jessie_usbflasher}" ; blend="usbflasher" ; extract_base_rootfs
@@ -172,6 +180,7 @@ options="--img-4gb bbx15-\${base_rootfs} ${am57xx_beagle_x15}" ; generate_img
 base_rootfs="${debian_wheezy_machinekit}" ; blend="machinekit" ; archive_base_rootfs
 base_rootfs="${debian_jessie_lxqt_4gb}" ; blend="lxqt-4gb" ; archive_base_rootfs
 base_rootfs="${debian_jessie_lxqt_2gb}" ; blend="lxqt-2gb" ; archive_base_rootfs
+base_rootfs="${debian_jessie_iot}" ; blend="iot" ; archive_base_rootfs
 base_rootfs="${debian_jessie_console}" ; blend="console" ; archive_base_rootfs
 base_rootfs="${debian_jessie_usbflasher}" ; blend="usbflasher" ; archive_base_rootfs
 base_rootfs="${debian_jessie_lxqt_4gb_nodejs}" ; blend="lxqt-4gb-nodejs-4.2.x" ; archive_base_rootfs
@@ -188,13 +197,19 @@ wfile="BBB-eMMC-flasher-\${base_rootfs}-4gb" ; archive_img
 wfile="bone-\${base_rootfs}-4gb" ; archive_img
 wfile="bbx15-eMMC-flasher-\${base_rootfs}-4gb" ; archive_img
 wfile="bbx15-\${base_rootfs}-4gb" ; archive_img
-wfile="omap5-uevm-\${base_rootfs}-4gb" ; archive_img
-wfile="tre-\${base_rootfs}-4gb" ; archive_img
+#wfile="omap5-uevm-\${base_rootfs}-4gb" ; archive_img
+#wfile="tre-\${base_rootfs}-4gb" ; archive_img
 
 #
 base_rootfs="${debian_jessie_lxqt_2gb}" ; blend="lxqt-2gb"
 
 wfile="BBB-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
+
+#
+base_rootfs="${debian_jessie_iot}" ; blend="iot"
+
+wfile="BBB-eMMC-flasher-\${base_rootfs}-4gb" ; archive_img
+wfile="bone-\${base_rootfs}-4gb" ; archive_img
 
 #
 base_rootfs="${debian_jessie_console}" ; blend="console"
@@ -204,7 +219,7 @@ wfile="BBB-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
 wfile="bone-\${base_rootfs}-2gb" ; archive_img
 wfile="bbx15-eMMC-flasher-\${base_rootfs}-2gb" ; archive_img
 wfile="bbx15-\${base_rootfs}-2gb" ; archive_img
-wfile="omap5-uevm-\${base_rootfs}-2gb" ; archive_img
+#wfile="omap5-uevm-\${base_rootfs}-2gb" ; archive_img
 
 #
 base_rootfs="${debian_jessie_usbflasher}" ; blend="usbflasher"
