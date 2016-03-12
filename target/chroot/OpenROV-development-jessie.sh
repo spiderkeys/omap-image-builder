@@ -102,12 +102,15 @@ install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
 		cd /
 		echo "Installing npm packages"
-		echo "debug: node: [`node --version`]"
-		echo "debug: npm: [`npm --version`]"
+		echo "debug: node: [`nodejs --version`]"
 
-		echo "NODE_PATH=/usr/local/lib/node_modules" > /etc/default/node
-		echo "export NODE_PATH=/usr/local/lib/node_modules" > /etc/profile.d/node.sh
-		chmod 755 /etc/profile.d/node.sh
+		if [ -f /usr/local/bin/npm ] ; then
+			npm_bin="/usr/local/bin/npm"
+		else
+			npm_bin="/usr/bin/npm"
+		fi
+
+		echo "debug: npm: [`${npm_bin} --version`]"
 
 		#debug
 		#echo "debug: npm config ls -l (before)"
@@ -116,24 +119,24 @@ install_node_pkgs () {
 		#echo "--------------------------------"
 
 		#c9-core-installer...
-		npm config delete cache
-		npm config delete tmp
-		npm config delete python
+		${npm_bin} config delete cache
+		${npm_bin} config delete tmp
+		${npm_bin} config delete python
 
 		#fix npm in chroot.. (did i mention i hate npm...)
 		if [ ! -d /root/.npm ] ; then
 			mkdir -p /root/.npm
 		fi
-		npm config set cache /root/.npm
-		npm config set group 0
-		npm config set init-module /root/.npm-init.js
+		${npm_bin} config set cache /root/.npm
+		${npm_bin} config set group 0
+		${npm_bin} config set init-module /root/.npm-init.js
 
 		if [ ! -d /root/tmp ] ; then
 			mkdir -p /root/tmp
 		fi
-		npm config set tmp /root/tmp
-		npm config set user 0
-		npm config set userconfig /root/.npmrc
+		${npm_bin} config set tmp /root/tmp
+		${npm_bin} config set user 0
+		${npm_bin} config set userconfig /root/.npmrc
 
 		#disabling until bonscript is fixed for new node
 		#if [ -f /usr/bin/make ] ; then
