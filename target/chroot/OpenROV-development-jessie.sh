@@ -97,7 +97,14 @@ cleanup_npm_cache () {
 	 fi
 }
 
-
+install_custom_pkgs () {
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-utils_1.0.0-1~32.e561460_armhf.deb
+	dpkg -i openrov-geocamera-utils_1.0.0-1~32.e561460_armhf.deb
+	rm openrov-geocamera-utils_1.0.0-1~32.e561460_armhf.deb
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
+	dpkg -i openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
+	rm openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
+}
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
 		cd /
@@ -307,6 +314,7 @@ is_this_qemu
 #setup_desktop
 
 #install_gem_pkgs
+install_custom_pkgs
 install_node_pkgs
 #install_pip_pkgs
 if [ -f /usr/bin/git ] ; then
