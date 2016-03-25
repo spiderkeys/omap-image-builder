@@ -105,9 +105,10 @@ install_custom_pkgs () {
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
 	dpkg -i openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
 	rm openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/uvcvideo/linux-4.1.18-ti-r52-uvcvideo-geopatch_1.0.0-1~12.2814f2e_armhf.deb
-  dpkg -i linux-4.1.18-ti-r52-uvcvideo-geopatch_1.0.0-1~12.2814f2e_armhf.deb
-	rm linux-4.1.18-ti-r52-uvcvideo-geopatch_1.0.0-1~12.2814f2e_armhf.deb
+	//TODO: Bump!!!
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/uvcvideo/linux-4.1.18-ti-r52-uvcvideo-geopatch_1.0.0-1~13.4bad296_armhf.deb
+  dpkg -i linux-4.1.18-ti-r52-uvcvideo-geopatch_1.0.0-1~13.4bad296_armhf.deb	
+	rm linux-4.1.18-ti-r52-uvcvideo-geopatch_1.0.0-1~13.4bad296_armhf.deb
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
