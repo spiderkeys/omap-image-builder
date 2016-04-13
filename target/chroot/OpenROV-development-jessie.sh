@@ -267,7 +267,7 @@ install_git_repos () {
 	git_repo="https://github.com/openrov/openrov-software-arduino"
 	bit_branch="30.0.4"
 	git_target_dir="/opt/openrov/arduino"
-	git_clone
+	git_clone_branch
 
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
 	git_branch="4.1-ti"
