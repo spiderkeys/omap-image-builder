@@ -333,3 +333,4 @@ fi
 #other_source_links
 #unsecure_root
 #todo
+chown rov:rov /home -R
