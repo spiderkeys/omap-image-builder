@@ -158,7 +158,7 @@ install_node_pkgs () {
 		#	TERM=dumb npm install -g bonescript
 		#fi
 
-		git_repo="https://github.com/openrov/openrov-cockpit"
+		git_repo="https://github.com/brianadams/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
 	  git_branch="expose-addon-manager"
 		git_clone_branch
