@@ -160,7 +160,8 @@ install_node_pkgs () {
 
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-		git_clone_full
+	  git_branch="expose-addon-manager"
+		git_clone_branch
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dumb npm install --production --unsafe-perm
