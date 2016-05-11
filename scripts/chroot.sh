@@ -397,12 +397,6 @@ if [ "x${repo_rcnee}" = "xenable" ] ; then
 	echo "deb [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
 	echo "#deb-src [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}/ ${deb_codename} main" >> ${wfile}
 
-	if [ "x${exp_repo_rcnee_jessie_nodejs}" = "xenable" ] ; then
-		echo "#" >> ${wfile}
-		echo "deb [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}-nodejs/ jessie main" >> ${wfile}
-		echo "#deb-src [arch=armhf] http://repos.rcn-ee.com/${deb_distribution}-nodejs/ jessie main" >> ${wfile}
-	fi
-
 	sudo cp -v "${OIB_DIR}/target/keyring/repos.rcn-ee.net-archive-keyring.asc" "${tempdir}/tmp/repos.rcn-ee.net-archive-keyring.asc"
 fi
 
@@ -771,7 +765,7 @@ cat > "${DIR}/chroot_script.sh" <<-__EOF__
 		echo "KERNEL==\"hidraw*\", GROUP=\"plugdev\", MODE=\"0660\"" > /etc/udev/rules.d/50-hidraw.rules
 		echo "KERNEL==\"spidev*\", GROUP=\"spi\", MODE=\"0660\"" > /etc/udev/rules.d/50-spi.rules
 
-		echo "SUBSYSTEM==\"uio\", SYMLINK+=\"uio/%s{device/of_node/uio-alias}\"" > /etc/udev/rules.d/uio.rules
+		echo "#SUBSYSTEM==\"uio\", SYMLINK+=\"uio/%s{device/of_node/uio-alias}\"" > /etc/udev/rules.d/uio.rules
 		echo "SUBSYSTEM==\"uio\", GROUP=\"users\", MODE=\"0660\"" >> /etc/udev/rules.d/uio.rules
 
 		echo "SUBSYSTEM==\"cmem\", GROUP=\"tisdk\", MODE=\"0660\"" > /etc/udev/rules.d/tisdk.rules

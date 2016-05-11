@@ -105,9 +105,9 @@ install_custom_pkgs () {
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
 	dpkg -i openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
 	rm openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/uvcvideo/linux-4.1.18-ti-r56-uvcvideo-geopatch_1.0.0-1~15.2f767e7_armhf.deb
-  dpkg -i linux-4.1.18-ti-r56-uvcvideo-geopatch_1.0.0-1~15.2f767e7_armhf.deb
-	rm linux-4.1.18-ti-r56-uvcvideo-geopatch_1.0.0-1~15.2f767e7_armhf.deb
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/uvcvideo/linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
+  dpkg -i linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
+	rm linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
@@ -158,9 +158,10 @@ install_node_pkgs () {
 		#	TERM=dumb npm install -g bonescript
 		#fi
 
-		git_repo="https://github.com/openrov/openrov-cockpit"
+		git_repo="https://github.com/brianadams/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-		git_clone_full
+	  git_branch="cleanup"
+		git_clone_branch
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dumb npm install --production --unsafe-perm

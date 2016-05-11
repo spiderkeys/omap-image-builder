@@ -22,7 +22,7 @@
 
 export LC_ALL=C
 
-u_boot_release="v2016.01"
+u_boot_release="v2016.03"
 #bone101_git_sha="50e01966e438ddc43b9177ad4e119e5274a0130d"
 
 #contains: rfs_username, release_date
@@ -89,7 +89,7 @@ setup_system () {
 
 install_git_repos () {
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
-	git_branch="4.1-ti"
+	git_branch="4.4-ti"
 	git_target_dir="/opt/source/dtb-${git_branch}"
 	git_clone_branch
 

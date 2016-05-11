@@ -95,6 +95,18 @@ setup_system () {
 	echo "" >> /etc/securetty
 	echo "#USB Gadget Serial Port" >> /etc/securetty
 	echo "ttyGS0" >> /etc/securetty
+
+#	this is now done in the choot, need to double check the mode..
+#	# Enable all users to read hidraw devices
+#	cat <<- EOF > /etc/udev/rules.d/99-hdiraw.rules
+#		SUBSYSTEM=="hidraw", MODE="0644"
+#	EOF
+
+	# Enable PAM for ssh links
+	# Fixes an issue where users cannot change ulimits when logged in via
+	# ssh, which causes some Machinekit functions to fail
+	sed -i 's/^UsePAM.*$/UsePam yes/' /etc/ssh/sshd_config
+
 }
 
 setup_desktop () {
@@ -139,10 +151,14 @@ setup_desktop () {
 	fi
 
 	if [ ! "x${rfs_desktop_background}" = "x" ] ; then
-		mkdir -p /home/${rfs_username}/.config/ || true
-		if [ -d /opt/scripts/desktop-defaults/jessie/lxqt/ ] ; then
-			cp -rv /opt/scripts/desktop-defaults/jessie/lxqt/* /home/${rfs_username}/.config
-		fi
+		ext="${rfs_desktop_background##*.}"
+		cp -v "${rfs_desktop_background}" /opt/desktop-background.${ext}
+
+		mkdir -p /home/${rfs_username}/.config/pcmanfm/LXDE/ || true
+		wfile="/home/${rfs_username}/.config/pcmanfm/LXDE/pcmanfm.conf"
+		echo "[desktop]" > ${wfile}
+		echo "wallpaper_mode=1" >> ${wfile}
+		echo "wallpaper=/opt/desktop-background.${ext}" >> ${wfile}
 		chown -R ${rfs_username}:${rfs_username} /home/${rfs_username}/.config/
 	fi
 
@@ -156,40 +172,19 @@ setup_desktop () {
 	echo "xsetroot -cursor_name left_ptr" >> ${wfile}
 	chown -R ${rfs_username}:${rfs_username} ${wfile}
 
-#	#Disable LXDE's screensaver on autostart
-#	if [ -f /etc/xdg/lxsession/LXDE/autostart ] ; then
-#		sed -i '/xscreensaver/s/^/#/' /etc/xdg/lxsession/LXDE/autostart
-#	fi
+	#Disable LXDE's screensaver on autostart
+	if [ -f /etc/xdg/lxsession/LXDE/autostart ] ; then
+		sed -i '/xscreensaver/s/^/#/' /etc/xdg/lxsession/LXDE/autostart
+	fi
 
 	#echo "CAPE=cape-bone-proto" >> /etc/default/capemgr
 
-#	#root password is blank, so remove useless application as it requires a password.
-#	if [ -f /usr/share/applications/gksu.desktop ] ; then
-#		rm -f /usr/share/applications/gksu.desktop || true
-#	fi
-
-#	#lxterminal doesnt reference .profile by default, so call via loginshell and start bash
-#	if [ -f /usr/bin/lxterminal ] ; then
-#		if [ -f /usr/share/applications/lxterminal.desktop ] ; then
-#			sed -i -e 's:Exec=lxterminal:Exec=lxterminal -l -e bash:g' /usr/share/applications/lxterminal.desktop
-#			sed -i -e 's:TryExec=lxterminal -l -e bash:TryExec=lxterminal:g' /usr/share/applications/lxterminal.desktop
-#		fi
-#	fi
-
-	#fix Ping:
-	#ping: icmp open socket: Operation not permitted
-	if [ -f /bin/ping ] ; then
-	    if command -v setcap > /dev/null; then
-		if setcap cap_net_raw+ep /bin/ping cap_net_raw+ep /bin/ping6; then
-		    echo "Setcap worked! Ping(6) is not suid!"
-		else
-		    echo "Setcap failed on /bin/ping, falling back to setuid" >&2
-		    chmod u+s /bin/ping /bin/ping6
+	#lxterminal doesnt reference .profile by default, so call via loginshell and start bash
+	if [ -f /usr/bin/lxterminal ] ; then
+		if [ -f /usr/share/applications/lxterminal.desktop ] ; then
+			sed -i -e 's:Exec=lxterminal:Exec=lxterminal -l -e bash:g' /usr/share/applications/lxterminal.desktop
+			sed -i -e 's:TryExec=lxterminal -l -e bash:TryExec=lxterminal:g' /usr/share/applications/lxterminal.desktop
 		fi
-	    else
-		echo "Setcap is not installed, falling back to setuid" >&2
-		chmod u+s /bin/ping /bin/ping6
-	    fi
 	fi
 }
 
@@ -218,6 +213,12 @@ install_pip_pkgs () {
 			fi
 		fi
 	fi
+}
+
+early_git_repos () {
+	git_repo="https://github.com/cdsteinkuehler/machinekit-beaglebone-extras"
+	git_target_dir="opt/source/machinekit-extras"
+	git_clone
 }
 
 install_git_repos () {
@@ -309,6 +310,18 @@ install_git_repos () {
 		fi
 	fi
 
+	git_repo="https://github.com/ungureanuvladvictor/BBBlfs"
+	git_target_dir="/opt/source/BBBlfs"
+	git_clone
+	if [ -f ${git_target_dir}/.git/config ] ; then
+		cd ${git_target_dir}/
+		if [ -f /usr/bin/make ] ; then
+			./autogen.sh
+			./configure
+			make
+		fi
+	fi
+
 	#am335x-pru-package
 	if [ -f /usr/include/prussdrv.h ] ; then
 		git_repo="git://git.ti.com/pru-software-support-package/pru-software-support-package.git"
@@ -357,10 +370,11 @@ unsecure_root () {
 
 is_this_qemu
 
+early_git_repos
 setup_system
 setup_desktop
 
-#install_pip_pkgs
+install_pip_pkgs
 if [ -f /usr/bin/git ] ; then
 	git config --global user.email "${rfs_username}@example.com"
 	git config --global user.name "${rfs_username}"
