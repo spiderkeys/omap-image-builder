@@ -100,14 +100,22 @@ cleanup_npm_cache () {
 #TODO: These packages need to be deployed to the deb repo for production image
 install_custom_pkgs () {
 	
+	# ZeroMQ
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/zmq/openrov-zmq_1.0.0-1~2_armhf.deb
+	dpkg -i openrov-zmq_1.0.0-1~2_armhf.deb
+	rm openrov-zmq_1.0.0-1~2_armhf.deb
+	
+	# GC6500 Apps
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-utils_1.0.0-1~35.16a26aa_armhf.deb
 	dpkg -i openrov-geocamera-utils_1.0.0-1~35.16a26aa_armhf.deb
 	rm openrov-geocamera-utils_1.0.0-1~35.16a26aa_armhf.deb
 	
+	# UVC Driver
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/uvcvideo/linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
   	dpkg -i linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 	rm linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 	
+	# Geomuxpp App
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~10_armhf.deb
 	dpkg -i openrov-geomuxpp_1.0.0-1~10_armhf.deb
 	rm openrov-geomuxpp_1.0.0-1~10_armhf.deb
