@@ -116,9 +116,9 @@ install_custom_pkgs () {
 	rm linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 	
 	# Geomuxpp App
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~10_armhf.deb
-	dpkg -i openrov-geomuxpp_1.0.0-1~10_armhf.deb
-	rm openrov-geomuxpp_1.0.0-1~10_armhf.deb
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~11_armhf.deb
+	dpkg -i openrov-geomuxpp_1.0.0-1~11_armhf.deb
+	rm openrov-geomuxpp_1.0.0-1~11_armhf.deb
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
