@@ -277,7 +277,7 @@ install_node_pkgs () {
 install_git_repos () {
 
 	git_repo="https://github.com/openrov/openrov-software-arduino"
-	git_branch="30.0.4"
+	git_branch="30.0.5"
 	git_target_dir="/opt/openrov/arduino"
 	git_clone_branch
 
