@@ -99,15 +99,26 @@ cleanup_npm_cache () {
 
 #TODO: These packages need to be deployed to the deb repo for production image
 install_custom_pkgs () {
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-utils_1.0.0-1~32.e561460_armhf.deb
-	dpkg -i openrov-geocamera-utils_1.0.0-1~32.e561460_armhf.deb
-	rm openrov-geocamera-utils_1.0.0-1~32.e561460_armhf.deb
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
-	dpkg -i openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
-	rm openrov-geocamera-libs_1.0.0-1~32.e561460_armhf.deb
+	
+	# ZeroMQ
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/zmq/openrov-zmq_1.0.0-1~2_armhf.deb
+	dpkg -i openrov-zmq_1.0.0-1~2_armhf.deb
+	rm openrov-zmq_1.0.0-1~2_armhf.deb
+	
+	# GC6500 Apps
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geocamera-libs/openrov-geocamera-utils_1.0.0-1~35.16a26aa_armhf.deb
+	dpkg -i openrov-geocamera-utils_1.0.0-1~35.16a26aa_armhf.deb
+	rm openrov-geocamera-utils_1.0.0-1~35.16a26aa_armhf.deb
+	
+	# UVC Driver
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/uvcvideo/linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
-  dpkg -i linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
+  	dpkg -i linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 	rm linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
+	
+	# Geomuxpp App
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~12_armhf.deb
+	dpkg -i openrov-geomuxpp_1.0.0-1~12_armhf.deb
+	rm openrov-geomuxpp_1.0.0-1~12_armhf.deb
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
@@ -160,31 +171,26 @@ install_node_pkgs () {
 
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-	  git_branch="master"
+	  	git_branch="master"
 		git_clone_branch
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dumb npm install --production --unsafe-perm
-
-			wfile="/lib/systemd/system/orov-cockpit.socket"
-			echo "[Socket]" > ${wfile}
-			echo "ListenStream=8080" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=sockets.target" >> ${wfile}
-
+			
 			wfile="/lib/systemd/system/orov-cockpit.service"
 			echo "[Unit]" > ${wfile}
 			echo "Description=Cockpit server" >> ${wfile}
 			echo "" >> ${wfile}
 			echo "[Service]" >> ${wfile}
-			#http://stackoverflow.com/questions/22498753/no-data-from-socket-activation-with-systemd
 			echo "NonBlocking=True" >> ${wfile}
 			echo "WorkingDirectory=/opt/openrov/cockpit/src" >> ${wfile}
 			echo "ExecStart=/usr/bin/node cockpit.js" >> ${wfile}
 			echo "SyslogIdentifier=orov-cockpit" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=multi-user.target" >> ${wfile}
 
-			systemctl enable orov-cockpit.socket || true
+			systemctl enable orov-cockpit.service || true
 
 			bash install_lib/openrov-cockpit-afterinstall.sh
 		fi
@@ -266,7 +272,7 @@ install_node_pkgs () {
 install_git_repos () {
 
 	git_repo="https://github.com/openrov/openrov-software-arduino"
-	git_branch="30.0.4"
+	git_branch="30.0.5"
 	git_target_dir="/opt/openrov/arduino"
 	git_clone_branch
 
