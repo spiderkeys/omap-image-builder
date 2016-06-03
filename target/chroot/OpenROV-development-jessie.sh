@@ -176,26 +176,21 @@ install_node_pkgs () {
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
 			TERM=dumb npm install --production --unsafe-perm
-
-			wfile="/lib/systemd/system/orov-cockpit.socket"
-			echo "[Socket]" > ${wfile}
-			echo "ListenStream=8080" >> ${wfile}
-			echo "" >> ${wfile}
-			echo "[Install]" >> ${wfile}
-			echo "WantedBy=sockets.target" >> ${wfile}
-
+			
 			wfile="/lib/systemd/system/orov-cockpit.service"
 			echo "[Unit]" > ${wfile}
 			echo "Description=Cockpit server" >> ${wfile}
 			echo "" >> ${wfile}
 			echo "[Service]" >> ${wfile}
-			#http://stackoverflow.com/questions/22498753/no-data-from-socket-activation-with-systemd
 			echo "NonBlocking=True" >> ${wfile}
 			echo "WorkingDirectory=/opt/openrov/cockpit/src" >> ${wfile}
 			echo "ExecStart=/usr/bin/node cockpit.js" >> ${wfile}
 			echo "SyslogIdentifier=orov-cockpit" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=multi-user.target" >> ${wfile}
 
-			systemctl enable orov-cockpit.socket || true
+			systemctl enable orov-cockpit.service || true
 
 			bash install_lib/openrov-cockpit-afterinstall.sh
 		fi
