@@ -100,9 +100,9 @@ cleanup_npm_cache () {
 #TODO: These packages need to be deployed to the deb repo for production image
 install_custom_pkgs () {
 	# Nginx
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/nginx/nginx_1.10.1_armhf.deb
-	dpkg -i nginx_1.10.1_armhf.deb
-	rm nginx_1.10.1_armhf.deb
+#	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/nginx/nginx_1.10.1_armhf.deb
+#	dpkg -i nginx_1.10.1_armhf.deb
+#	rm nginx_1.10.1_armhf.deb
 	
 	# ZeroMQ
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/zmq/openrov-zmq_1.0.0-1~2_armhf.deb
