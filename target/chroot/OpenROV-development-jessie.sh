@@ -172,12 +172,34 @@ install_node_pkgs () {
 		${npm_bin} config set user 0
 		${npm_bin} config set userconfig /root/.npmrc
 
-		#disabling until bonscript is fixed for new node
-		#if [ -f /usr/bin/make ] ; then
-		#	echo "Installing: [npm install -g bonescript]"
-		#	TERM=dumb npm install -g bonescript
-		#fi
+		# Sysdetect
+		git_repo="https://github.com/openrov/orov-sysdetect.git"
+		git_target_dir="/opt/openrov/system"
+	  	git_branch="master"
+		git_clone_branch
+		if [ -f ${git_target_dir}/.git/config ] ; then
+			cd ${git_target_dir}/
+			TERM=dumb npm install --unsafe-perm
+			
+			wfile="/lib/systemd/system/orov-sysdetect.service"
+			echo "[Unit]" > ${wfile}
+			echo "Description=OpenROV System Detection Process" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Service]" >> ${wfile}
+			echo "Type=oneshot" >> ${wfile}
+			echo "NonBlocking=True" >> ${wfile}
+			echo "WorkingDirectory=/opt/openrov/system" >> ${wfile}
+			echo "ExecStart=/usr/bin/node src/index.js" >> ${wfile}
+			echo "SyslogIdentifier=orov-sysdetect" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "RequiredBy=orov-cockpit.service" >> ${wfile}
+			echo "WantedBy=multi-user.target" >> ${wfile}
 
+			systemctl enable orov-sysdetect.service || true
+		fi
+
+		# Cockpit
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
 	  	git_branch="master"
@@ -204,6 +226,7 @@ install_node_pkgs () {
 			bash install_lib/openrov-cockpit-afterinstall.sh
 		fi
 
+		# Dashboard
 		git_repo="https://github.com/openrov/openrov-dashboard"
 		git_target_dir="/opt/openrov/dashboard"
 		git_clone_full
@@ -233,6 +256,7 @@ install_node_pkgs () {
 
 		fi
 
+		# Proxy
 		git_repo="https://github.com/openrov/openrov-proxy"
 		git_target_dir="/opt/openrov/openrov-proxy"
 		git_clone_full
