@@ -128,6 +128,21 @@ install_custom_pkgs () {
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~13_armhf.deb
 	dpkg -i openrov-geomuxpp_1.0.0-1~13_armhf.deb
 	rm openrov-geomuxpp_1.0.0-1~13_armhf.deb
+	
+	# OpenOCD
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/openocd/openrov-openocd_1.0.0-1~3_armhf.deb
+	dpkg -i openrov-openocd_1.0.0-1~3_armhf.deb
+	rm openrov-openocd_1.0.0-1~3_armhf.deb
+	
+	# OpenROV Arduino Core
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino/openrov-arduino_1.0.0-1~15_armhf.deb
+	dpkg -i openrov-arduino_1.0.0-1~15_armhf.deb
+	rm openrov-arduino_1.0.0-1~15_armhf.deb
+	
+	# Arduino Builder
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino-builder/openrov-arduino-builder_1.0.0-1~6_armhf.deb
+	dpkg -i openrov-arduino-builder_1.0.0-1~6_armhf.deb
+	rm openrov-arduino-builder_1.0.0-1~6_armhf.deb
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
@@ -145,12 +160,6 @@ install_node_pkgs () {
 		fi
 
 		echo "debug: npm: [`${npm_bin} --version`]"
-
-		#debug
-		#echo "debug: npm config ls -l (before)"
-		#echo "--------------------------------"
-		#npm config ls -l
-		#echo "--------------------------------"
 
 		#c9-core-installer...
 		${npm_bin} config delete cache
@@ -302,11 +311,13 @@ install_node_pkgs () {
 	fi
 }
 
-install_git_repos () {
-
+install_git_repos ()
+{
+	# MCU Firmware
 	git_repo="https://github.com/openrov/openrov-software-arduino"
-	git_branch="30.0.5"
-	git_target_dir="/opt/openrov/arduino"
+	git_branch="firmware-2.0"
+	git_target_chroot_dir="/opt/openrov/firmware"
+	git_target_dir="${ROOTFS_DIR}${git_target_chroot_dir}"
 	git_clone_branch
 
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
@@ -355,13 +366,9 @@ todo () {
 
 is_this_qemu
 
-#setup_system
-#setup_desktop
-
-#install_gem_pkgs
 install_custom_pkgs
 install_node_pkgs
-#install_pip_pkgs
+
 if [ -f /usr/bin/git ] ; then
 	git config --global user.email "${rfs_username}@example.com"
 	git config --global user.name "${rfs_username}"
@@ -369,8 +376,5 @@ if [ -f /usr/bin/git ] ; then
 	git config --global --unset-all user.email
 	git config --global --unset-all user.name
 fi
-#install_build_pkgs
-#other_source_links
-#unsecure_root
-#todo
+
 chown rov:rov /home -R
