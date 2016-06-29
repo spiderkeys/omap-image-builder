@@ -99,12 +99,13 @@ cleanup_npm_cache () {
 
 #TODO: These packages need to be deployed to the deb repo for production image
 install_custom_pkgs () {
-	# Nginx
 
+	# Nginx-common
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/nginx/nginx-common_1.9.10-1~bpo8%202_all.deb
 	dpkg -i nginx-common_1.9.10-1~bpo8\ 2_all.deb
 	rm nginx-common_1.9.10-1~bpo8\ 2_all.deb
 
+	# Nginx-light
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/nginx/nginx-light_1.9.10-1~bpo8%202_armhf.deb
 	dpkg -i nginx-light_1.9.10-1~bpo8\ 2_armhf.deb
 	rm nginx-light_1.9.10-1~bpo8\ 2_armhf.deb
@@ -283,10 +284,6 @@ install_node_pkgs () {
 		echo "Installing wetty"
 		TERM=dumb npm install -g wetty
 
-		echo "Installing ungit"
-		TERM=dumb npm install -g ungit
-
-
 		cd /opt/
 
 		#cloud9 installed by cloud9-installer
@@ -352,6 +349,7 @@ install_git_repos ()
 	git_clone_branch
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
+		./beforeinstall.sh || true
 		./afterinstall.sh || true
 	fi
 
