@@ -130,16 +130,6 @@ install_custom_pkgs () {
 	dpkg -i openrov-geomuxpp_1.0.0-1~13_armhf.deb
 	rm openrov-geomuxpp_1.0.0-1~13_armhf.deb
 	
-	# OpenOCD
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/openocd/openrov-openocd_1.0.0-1~3_armhf.deb
-	dpkg -i openrov-openocd_1.0.0-1~3_armhf.deb
-	rm openrov-openocd_1.0.0-1~3_armhf.deb
-	
-	# OpenROV Arduino Core
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino/openrov-arduino_1.0.0-1~15_armhf.deb
-	dpkg -i openrov-arduino_1.0.0-1~15_armhf.deb
-	rm openrov-arduino_1.0.0-1~15_armhf.deb
-	
 	# Arduino Builder
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino-builder/openrov-arduino-builder_1.0.0-1~6_armhf.deb
 	dpkg -i openrov-arduino-builder_1.0.0-1~6_armhf.deb
@@ -203,8 +193,7 @@ install_node_pkgs () {
 			echo "SyslogIdentifier=orov-sysdetect" >> ${wfile}
 			echo "" >> ${wfile}
 			echo "[Install]" >> ${wfile}
-			echo "RequiredBy=orov-cockpit.service" >> ${wfile}
-			echo "WantedBy=multi-user.target" >> ${wfile}
+			echo "WantedBy=orov-cockpit.service" >> ${wfile}
 
 			systemctl enable orov-sysdetect.service || true
 		fi
@@ -310,6 +299,13 @@ install_node_pkgs () {
 
 install_git_repos ()
 {
+	# Openrov Arduino Core
+	git_repo="https://github.com/openrov/openrov-arduino-cores"
+	git_branch="dev"
+	git_target_chroot_dir="/opt/openrov/arduino"
+	git_target_dir="${ROOTFS_DIR}${git_target_chroot_dir}"
+	git_clone_branch
+
 	# MCU Firmware
 	git_repo="https://github.com/openrov/openrov-software-arduino"
 	git_branch="firmware-2.0"
@@ -317,11 +313,13 @@ install_git_repos ()
 	git_target_dir="${ROOTFS_DIR}${git_target_chroot_dir}"
 	git_clone_branch
 
+	# DTB Redbuilder
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
 	git_branch="4.1-ti"
 	git_target_dir="/opt/source/dtb-${git_branch}"
 	git_clone_branch
 
+	# BBB DTOverlays
 	git_repo="https://github.com/beagleboard/bb.org-overlays"
 	git_target_dir="/opt/source/bb.org-overlays"
 	git_clone
@@ -343,9 +341,10 @@ install_git_repos ()
 		cd /
 	fi
 
+	# Image customization
 	git_repo="https://github.com/openrov/openrov-image-customization"
 	git_target_dir="/opt/openrov/image-customization"
-	git_branch="jessie"
+	git_branch="bbb-jessie"
 	git_clone_branch
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
