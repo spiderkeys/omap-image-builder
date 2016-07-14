@@ -173,7 +173,7 @@ install_node_pkgs () {
 		${npm_bin} config set userconfig /root/.npmrc
 
 		# Sysdetect
-		git_repo="https://github.com/openrov/orov-sysdetect.git"
+		git_repo="https://github.com/openrov-dev/orov-sysdetect.git"
 		git_target_dir="/opt/openrov/system"
 	  	git_branch="master"
 		git_clone_branch
