@@ -129,7 +129,12 @@ install_custom_pkgs () {
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~13_armhf.deb
 	dpkg -i openrov-geomuxpp_1.0.0-1~13_armhf.deb
 	rm openrov-geomuxpp_1.0.0-1~13_armhf.deb
-	
+
+	# Arduino Core
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino/openrov-arduino_1.0.0-1~17_armhf.deb
+	dpkg -i openrov-arduino_1.0.0-1~17_armhf.deb
+	rm openrov-arduino_1.0.0-1~17_armhf.deb
+
 	# Arduino Builder
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino-builder/openrov-arduino-builder_1.0.0-1~6_armhf.deb
 	dpkg -i openrov-arduino-builder_1.0.0-1~6_armhf.deb
@@ -299,13 +304,6 @@ install_node_pkgs () {
 
 install_git_repos ()
 {
-	# Openrov Arduino Core
-	git_repo="https://github.com/openrov/openrov-arduino-cores"
-	git_branch="dev"
-	git_target_chroot_dir="/opt/openrov/arduino"
-	git_target_dir="${ROOTFS_DIR}${git_target_chroot_dir}"
-	git_clone_branch
-
 	# MCU Firmware
 	git_repo="https://github.com/openrov/openrov-software-arduino"
 	git_branch="firmware-2.0"
