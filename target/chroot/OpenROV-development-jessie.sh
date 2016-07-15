@@ -288,7 +288,7 @@ install_node_pkgs () {
 			fi
 
 			#cloud9 conflicts with the openrov proxy, move cloud 9
-			if [ -f //lib/systemd/system/cloud9.socket ] ; then
+			if [ -f /lib/systemd/system/cloud9.socket ] ; then
 				sed -i -e 's:3000:3131:g' /lib/systemd/system/cloud9.socket
 			fi
 
