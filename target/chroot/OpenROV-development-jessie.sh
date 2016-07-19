@@ -126,9 +126,9 @@ install_custom_pkgs () {
 	rm linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 	
 	# Geomuxpp App
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~13_armhf.deb
-	dpkg -i openrov-geomuxpp_1.0.0-1~13_armhf.deb
-	rm openrov-geomuxpp_1.0.0-1~13_armhf.deb
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~14_armhf.deb
+	dpkg -i openrov-geomuxpp_1.0.0-1~14_armhf.deb
+	rm openrov-geomuxpp_1.0.0-1~14_armhf.deb
 
 	# Arduino Core
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino/openrov-arduino_1.0.0-1~17_armhf.deb
