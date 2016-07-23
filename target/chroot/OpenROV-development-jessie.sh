@@ -206,7 +206,7 @@ install_node_pkgs () {
 		# Cockpit
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-	  	git_branch="feat_platabstract"
+	  	git_branch="master"
 		git_clone_branch
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
