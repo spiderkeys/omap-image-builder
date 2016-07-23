@@ -99,12 +99,13 @@ cleanup_npm_cache () {
 
 #TODO: These packages need to be deployed to the deb repo for production image
 install_custom_pkgs () {
-	# Nginx
 
+	# Nginx-common
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/nginx/nginx-common_1.9.10-1~bpo8%202_all.deb
 	dpkg -i nginx-common_1.9.10-1~bpo8\ 2_all.deb
 	rm nginx-common_1.9.10-1~bpo8\ 2_all.deb
 
+	# Nginx-light
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/nginx/nginx-light_1.9.10-1~bpo8%202_armhf.deb
 	dpkg -i nginx-light_1.9.10-1~bpo8\ 2_armhf.deb
 	rm nginx-light_1.9.10-1~bpo8\ 2_armhf.deb
@@ -125,9 +126,19 @@ install_custom_pkgs () {
 	rm linux-4.1.22-ti-r59-uvcvideo-geopatch_1.0.0-1~17.0012e33_armhf.deb
 	
 	# Geomuxpp App
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~13_armhf.deb
-	dpkg -i openrov-geomuxpp_1.0.0-1~13_armhf.deb
-	rm openrov-geomuxpp_1.0.0-1~13_armhf.deb
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~14_armhf.deb
+	dpkg -i openrov-geomuxpp_1.0.0-1~14_armhf.deb
+	rm openrov-geomuxpp_1.0.0-1~14_armhf.deb
+
+	# Arduino Core
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino/openrov-arduino_1.0.0-1~17_armhf.deb
+	dpkg -i openrov-arduino_1.0.0-1~17_armhf.deb
+	rm openrov-arduino_1.0.0-1~17_armhf.deb
+
+	# Arduino Builder
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/arduino-builder/openrov-arduino-builder_1.0.0-1~6_armhf.deb
+	dpkg -i openrov-arduino-builder_1.0.0-1~6_armhf.deb
+	rm openrov-arduino-builder_1.0.0-1~6_armhf.deb
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
@@ -145,12 +156,6 @@ install_node_pkgs () {
 		fi
 
 		echo "debug: npm: [`${npm_bin} --version`]"
-
-		#debug
-		#echo "debug: npm config ls -l (before)"
-		#echo "--------------------------------"
-		#npm config ls -l
-		#echo "--------------------------------"
 
 		#c9-core-installer...
 		${npm_bin} config delete cache
@@ -172,12 +177,33 @@ install_node_pkgs () {
 		${npm_bin} config set user 0
 		${npm_bin} config set userconfig /root/.npmrc
 
-		#disabling until bonscript is fixed for new node
-		#if [ -f /usr/bin/make ] ; then
-		#	echo "Installing: [npm install -g bonescript]"
-		#	TERM=dumb npm install -g bonescript
-		#fi
+		# Sysdetect
+		git_repo="https://github.com/openrov-dev/orov-sysdetect.git"
+		git_target_dir="/opt/openrov/system"
+	  	git_branch="master"
+		git_clone_branch
+		if [ -f ${git_target_dir}/.git/config ] ; then
+			cd ${git_target_dir}/
+			TERM=dumb npm install --unsafe-perm
+			
+			wfile="/lib/systemd/system/orov-sysdetect.service"
+			echo "[Unit]" > ${wfile}
+			echo "Description=OpenROV System Detection Process" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Service]" >> ${wfile}
+			echo "Type=oneshot" >> ${wfile}
+			echo "NonBlocking=True" >> ${wfile}
+			echo "WorkingDirectory=/opt/openrov/system" >> ${wfile}
+			echo "ExecStart=/usr/bin/node src/index.js" >> ${wfile}
+			echo "SyslogIdentifier=orov-sysdetect" >> ${wfile}
+			echo "" >> ${wfile}
+			echo "[Install]" >> ${wfile}
+			echo "WantedBy=orov-cockpit.service" >> ${wfile}
 
+			systemctl enable orov-sysdetect.service || true
+		fi
+
+		# Cockpit
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
 	  	git_branch="master"
@@ -204,6 +230,7 @@ install_node_pkgs () {
 			bash install_lib/openrov-cockpit-afterinstall.sh
 		fi
 
+		# Dashboard
 		git_repo="https://github.com/openrov/openrov-dashboard"
 		git_target_dir="/opt/openrov/dashboard"
 		git_clone_full
@@ -233,6 +260,7 @@ install_node_pkgs () {
 
 		fi
 
+		# Proxy
 		git_repo="https://github.com/openrov/openrov-proxy"
 		git_target_dir="/opt/openrov/openrov-proxy"
 		git_clone_full
@@ -250,10 +278,6 @@ install_node_pkgs () {
 		echo "Installing wetty"
 		TERM=dumb npm install -g wetty
 
-		echo "Installing ungit"
-		TERM=dumb npm install -g ungit
-
-
 		cd /opt/
 
 		#cloud9 installed by cloud9-installer
@@ -264,7 +288,7 @@ install_node_pkgs () {
 			fi
 
 			#cloud9 conflicts with the openrov proxy, move cloud 9
-			if [ -f //lib/systemd/system/cloud9.socket ] ; then
+			if [ -f /lib/systemd/system/cloud9.socket ] ; then
 				sed -i -e 's:3000:3131:g' /lib/systemd/system/cloud9.socket
 			fi
 
@@ -278,18 +302,22 @@ install_node_pkgs () {
 	fi
 }
 
-install_git_repos () {
-
+install_git_repos ()
+{
+	# MCU Firmware
 	git_repo="https://github.com/openrov/openrov-software-arduino"
-	git_branch="30.0.5"
-	git_target_dir="/opt/openrov/arduino"
+	git_branch="firmware-2.0"
+	git_target_chroot_dir="/opt/openrov/firmware"
+	git_target_dir="${ROOTFS_DIR}${git_target_chroot_dir}"
 	git_clone_branch
 
+	# DTB Redbuilder
 	git_repo="https://github.com/RobertCNelson/dtb-rebuilder.git"
 	git_branch="4.1-ti"
 	git_target_dir="/opt/source/dtb-${git_branch}"
 	git_clone_branch
 
+	# BBB DTOverlays
 	git_repo="https://github.com/beagleboard/bb.org-overlays"
 	git_target_dir="/opt/source/bb.org-overlays"
 	git_clone
@@ -311,12 +339,14 @@ install_git_repos () {
 		cd /
 	fi
 
+	# Image customization
 	git_repo="https://github.com/openrov/openrov-image-customization"
 	git_target_dir="/opt/openrov/image-customization"
-	git_branch="jessie"
+	git_branch="bbb-jessie"
 	git_clone_branch
 	if [ -f ${git_target_dir}/.git/config ] ; then
 		cd ${git_target_dir}/
+		./beforeinstall.sh || true
 		./afterinstall.sh || true
 	fi
 
@@ -331,13 +361,9 @@ todo () {
 
 is_this_qemu
 
-#setup_system
-#setup_desktop
-
-#install_gem_pkgs
 install_custom_pkgs
 install_node_pkgs
-#install_pip_pkgs
+
 if [ -f /usr/bin/git ] ; then
 	git config --global user.email "${rfs_username}@example.com"
 	git config --global user.name "${rfs_username}"
@@ -345,8 +371,5 @@ if [ -f /usr/bin/git ] ; then
 	git config --global --unset-all user.email
 	git config --global --unset-all user.name
 fi
-#install_build_pkgs
-#other_source_links
-#unsecure_root
-#todo
+
 chown rov:rov /home -R
