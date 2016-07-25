@@ -128,6 +128,12 @@ install_custom_pkgs () {
 	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/geomuxpp/openrov-geomuxpp_1.0.0-1~12_armhf.deb
 	dpkg -i openrov-geomuxpp_1.0.0-1~12_armhf.deb
 	rm openrov-geomuxpp_1.0.0-1~12_armhf.deb
+
+	# MjpgStreamer App
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/mjpeg-streamer/openrov-mjpeg-streamer_2.0.1-10~10.21349e8_armhf.deb
+	dpkg -i openrov-mjpeg-streamer_2.0.1-10~10.21349e8_armhf.deb
+	rm openrov-mjpeg-streamer_2.0.1-10~10.21349e8_armhf.deb
+
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
@@ -180,7 +186,7 @@ install_node_pkgs () {
 
 		git_repo="https://github.com/openrov/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-	  	git_branch="master"
+	  	git_branch="codewithpassion-feature/mjpeg-socket-io-streaming"
 		git_clone_branch
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
