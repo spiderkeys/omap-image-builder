@@ -209,7 +209,7 @@ install_node_pkgs () {
 		fi
 
 		# Cockpit
-		git_repo="https://github.com/openrov/openrov-cockpit"
+		git_repo="https://github.com/brianadams/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
 	  	git_branch="codewithpassion-feature/mjpeg-socket-io-streaming"
 		git_clone_branch
