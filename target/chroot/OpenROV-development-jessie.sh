@@ -146,9 +146,9 @@ install_custom_pkgs () {
 	rm openrov-zmq_1.0.0-1~2_armhf.deb	
 	
 	# MjpgStreamer App
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/mjpeg-streamer/openrov-mjpeg-streamer_2.0.1-10~20.a7201e6_armhf.deb
-	dpkg -i openrov-mjpeg-streamer_2.0.1-10~20.a7201e6_armhf.deb
-	rm openrov-mjpeg-streamer_2.0.1-10~20.a7201e6_armhf.deb	
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/mjpeg-streamer/openrov-mjpeg-streamer_2.0.1-10~27.27ae33f_armhf.deb	
+	dpkg -i openrov-mjpeg-streamer_2.0.1-10~27.27ae33f_armhf.deb	
+	rm openrov-mjpeg-streamer_2.0.1-10~27.27ae33f_armhf.deb	
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
