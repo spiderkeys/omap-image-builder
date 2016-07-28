@@ -140,10 +140,15 @@ install_custom_pkgs () {
 	dpkg -i openrov-arduino-builder_1.0.0-1~6_armhf.deb
 	rm openrov-arduino-builder_1.0.0-1~6_armhf.deb
 
+    # ZeroMQ for dynamiclly linking with MjpgStreamer App
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/zmq/openrov-zmq_1.0.0-1~2_armhf.deb
+	dpkg -i openrov-zmq_1.0.0-1~2_armhf.deb
+	rm openrov-zmq_1.0.0-1~2_armhf.deb	
+	
 	# MjpgStreamer App
-	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/mjpeg-streamer/openrov-mjpeg-streamer_2.0.1-10~10.21349e8_armhf.deb
-	dpkg -i openrov-mjpeg-streamer_2.0.1-10~10.21349e8_armhf.deb
-	rm openrov-mjpeg-streamer_2.0.1-10~10.21349e8_armhf.deb	
+	wget http://openrov-software-nightlies.s3-us-west-2.amazonaws.com/jessie/mjpeg-streamer/openrov-mjpeg-streamer_2.0.1-10~20.a7201e6_armhf.deb
+	dpkg -i openrov-mjpeg-streamer_2.0.1-10~20.a7201e6_armhf.deb
+	rm openrov-mjpeg-streamer_2.0.1-10~20.a7201e6_armhf.deb	
 }
 install_node_pkgs () {
 	if [ -f /usr/bin/npm ] ; then
