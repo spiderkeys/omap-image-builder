@@ -364,8 +364,11 @@ install_git_repos ()
 
 todo () {
 	#Setup nginx
-	cd /etc/nginx/sites-enabled/
-	cp /opt/openrov/image-customization/nginx/default default
+	#cd /etc/nginx/sites-enabled/
+	#cp /opt/openrov/image-customization/nginx/default default
+	
+	#We only need one logger, and journald seems to be it
+	apt-get purge rsyslog
 }
 
 
@@ -373,6 +376,7 @@ is_this_qemu
 
 install_custom_pkgs
 install_node_pkgs
+todo
 
 if [ -f /usr/bin/git ] ; then
 	git config --global user.email "${rfs_username}@example.com"
