@@ -368,7 +368,7 @@ todo () {
 	#cp /opt/openrov/image-customization/nginx/default default
 	
 	#We only need one logger, and journald seems to be it
-	apt-get purge rsyslog
+	apt-get purge -y rsyslog
 }
 
 
