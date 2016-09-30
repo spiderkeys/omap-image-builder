@@ -216,7 +216,7 @@ install_node_pkgs () {
 		# Cockpit
 		git_repo="https://github.com/OpenROV/openrov-cockpit"
 		git_target_dir="/opt/openrov/cockpit"
-	  	git_branch="feat_tiltservoreversal"
+	  	git_branch="feat_firmwareloading"
 		git_clone_branch
 		if [ -f ${git_target_dir}/.git/config ] ; then
 			cd ${git_target_dir}/
@@ -316,7 +316,7 @@ install_git_repos ()
 {
 	# MCU Firmware
 	git_repo="https://github.com/openrov/openrov-software-arduino"
-	git_branch="feat_tiltservoupgrade"
+	git_branch="firmware-2.0"
 	git_target_chroot_dir="/opt/openrov/firmware"
 	git_target_dir="${ROOTFS_DIR}${git_target_chroot_dir}"
 	git_clone_branch
